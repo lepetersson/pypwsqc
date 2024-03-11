@@ -64,3 +64,45 @@ def fz_filter(
             fz_array[i] = 1
 
     return fz_array
+
+
+def HI_filter(
+    pws_rain: npt.NDArray[np.float_],
+    reference: npt.NDArray[np.float_],
+    HIthresA: npt.NDArray[np.float_],
+    HIthresB: npt.NDArray[np.float_],
+) -> npt.NDArray[np.float_]:
+    """High Influx filter
+
+    This function applies the HI filter from the R package PWSQC,
+    flagging unrealistically high rainfall amounts.
+
+    https://github.com/LottedeVos/PWSQC/tree/master/R
+
+    The function returns an array with [...]
+
+    Parameters
+    ----------
+    pws_data
+        The rainfall time series of the PWS that should be flagged
+    reference
+        The rainfall time series of the reference, which can be e.g.
+        the median of neighboring PWS data within a specified range d
+    HithresA
+        threshold for median rainfall of stations within range d [mm]
+    HithresB
+        upper rainfall limit [mm]
+
+    Returns
+    -------
+    npt.NDArray
+        time series of flags
+    """
+    condition1 = ds_pws.HIflag != -1
+    condition2 = (reference < HIthresA) & (pws_rain > HIthresB)
+    condition3 = (reference >= HIthresA) & (
+        pws_rain > reference * HIthresB / HIthresA
+    )
+    ds_pws["HIflag"] = xr.where(condition1 & (condition2 | condition3), 1, 0)
+
+    return HI_array
