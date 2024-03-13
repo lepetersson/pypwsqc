@@ -73,7 +73,7 @@ def HI_filter(
     reference: npt.NDArray[np.float_],
     HIthresA: npt.NDArray[np.float_],
     HIthresB: npt.NDArray[np.float_],
-    nstat = npt.NDArray[np.float_], 
+    nstat=npt.NDArray[np.float_],
 ) -> npt.NDArray[np.float_]:
     """High Influx filter
 
@@ -103,13 +103,11 @@ def HI_filter(
     npt.NDArray
         time series of flags
     """
-    HI_array = xr.where(nbrs_not_nan < nstat, -1,0)
+    HI_array = xr.where(nbrs_not_nan < nstat, -1, 0)
     condition1 = HI_array != -1
     condition2 = (reference < HIthresA) & (pws_data > HIthresB)
-    condition3 = (reference >= HIthresA) & (
-        pws_data > reference * HIthresB / HIthresA
-    )
+    condition3 = (reference >= HIthresA) & (pws_data > reference * HIthresB / HIthresA)
     HI_array = xr.where(condition1 & (condition2 | condition3), 1, 0)
-    print('app')
+    print("app")
 
     return HI_array
