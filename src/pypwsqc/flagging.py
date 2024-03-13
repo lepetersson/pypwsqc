@@ -75,7 +75,7 @@ def HI_filter(
     HIthresB: npt.NDArray[np.float_],
     nstat=npt.NDArray[np.float_],
 ) -> npt.NDArray[np.float_]:
-    """High Influx filter
+    """High Influx filter.
 
     This function applies the HI filter from the R package PWSQC,
     flagging unrealistically high rainfall amounts.
