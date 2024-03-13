@@ -159,6 +159,7 @@ ignore = [
 "tests/**" = ["T20", "D"]
 "noxfile.py" = ["T20", "D100"]
 "docs/conf.py" = ["D100", "A001"]
+"docs/notebooks/**" = ["E501"]
 
 [tool.ruff.lint.pydocstyle]
 convention = "numpy"
