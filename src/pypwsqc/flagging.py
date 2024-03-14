@@ -45,7 +45,7 @@ def fz_filter(
 
     sensor_array = np.zeros(np.shape(pws_data))
     sensor_array[np.where(pws_data > 0)] = 1
-    sensor_array[np.where(pws_data == 0)] = 0
+    sensor_array[np.where(pws_data == 0)] = 0  # redundant?
 
     fz_array = np.ones(np.shape(pws_data), dtype=np.float_) * -1
 
@@ -63,6 +63,7 @@ def fz_filter(
         else:
             fz_array[i] = 1
 
+    # fz_array.data[nbrs_not_nan < nstat] = -1
     return fz_array
 
 
@@ -107,7 +108,7 @@ def hi_filter(
         pws_data > reference * hi_thres_b / hi_thres_a
     )
 
-    mask = (condition1 | condition2).astype(int)
-    mask.data[nbrs_not_nan < nstat] = -1
+    hi_array = (condition1 | condition2).astype(int)
+    hi_array.data[nbrs_not_nan < nstat] = -1
 
-    return mask
+    return hi_array
