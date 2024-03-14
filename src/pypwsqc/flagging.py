@@ -109,6 +109,7 @@ def hi_filter(
     )
 
     hi_array = (condition1 | condition2).astype(int)
+    hi_array = np.asarray(hi_array)
     hi_array.data[nbrs_not_nan < nstat] = -1
 
     return hi_array

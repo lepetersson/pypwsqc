@@ -45,126 +45,21 @@ def test_fz_filter():
 
 def test_hi_filter():
     # for max_distance = 10e3
-    # fmt:off
-    pws_data = np.array(
-        [
-            0.0,
-            0.0,
-            0.101,
-            0.0,
-            0.101,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            1.3130001,
-            3.7370002,
-            0.404,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-        ]
-    )
+    # fmt: off
+    pws_data = np.array([0.       , 0.       , 0.101    , 0.       , 0.101    , 0.       ,
+       0.       , 0.       , 0.       , 0.       , 0.       , 1.3130001,
+       3.7370002, 0.404    , 0.       , 0.       , 0.       , 0.       ,
+       0.       , 0.       , 0.       , 0.       , 0.       , 0.       ,
+       0.       ])
 
-    nbrs_not_nan = np.array(
-        [
-            24,
-            23,
-            24,
-            23,
-            26,
-            23,
-            25,
-            22,
-            23,
-            23,
-            23,
-            23,
-            23,
-            23,
-            22,
-            23,
-            23,
-            26,
-            26,
-            25,
-            25,
-            23,
-            27,
-            25,
-            23,
-        ]
-    )
+    nbrs_not_nan = np.array([24, 23, 24, 23, 26, 23, 25, 22, 23, 23, 23, 23, 23, 23, 22, 23, 23,
+       26, 26, 25, 25, 23, 27, 25, 23])
 
-    reference = np.array(
-        [
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-        ]
-    )
+    reference = np.array([0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+       0., 0., 0., 0., 0., 0., 0., 0.])
 
-    expected = np.array(
-        [
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-        ]
-    )
+    expected = np.array([0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+       0., 0., 0., 0., 0., 0., 0., 0.])
 
     # fmt: on
     result = pypwsqc.flagging.hi_filter(
@@ -173,10 +68,11 @@ def test_hi_filter():
         reference=reference,
         hi_thres_a=0.4,
         hi_thres_b=10,
+        nstat=5,
     )
     np.testing.assert_almost_equal(expected, result)
 
-    # same test as above but with different `hi_thres_b`
+    # the same test as above but with different `hi_thres_b`
     # fmt: off
     expected = np.array([0.       , 0.       , 0.   , 0.       , 0.    , 0.       ,
        0.       , 0.       , 0.       , 0.       , 0.       , 0.,
@@ -187,5 +83,6 @@ def test_hi_filter():
                                         nbrs_not_nan = nbrs_not_nan,
                                         reference = reference,
                                         hi_thres_a = 0.4,
-                                        hi_thres_b = 3)
+                                        hi_thres_b = 3,
+                                        nstat=5)
     np.testing.assert_almost_equal(expected, result)
