@@ -158,7 +158,7 @@ ignore = [
 # typing-modules = ["pypwsqc._compat.typing"]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**" = ["T20", "D"]
+"tests/**" = ["T20", "D", "E501"]
 "noxfile.py" = ["T20", "D100"]
 "docs/conf.py" = ["D100", "A001"]
 "docs/notebooks/**" = ["E501"]
