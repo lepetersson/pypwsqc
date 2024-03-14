@@ -91,7 +91,7 @@ def hi_filter(
         The rainfall time series of the PWS that should be flagged
     reference
         The rainfall time series of the reference, which can be e.g.
-        the median of neighboring PWS data within a specified range d
+        the median of neighboring PWS data.
     hi_thres_a
         threshold for median rainfall of stations within range d [mm]
     hi_thres_b
@@ -102,14 +102,12 @@ def hi_filter(
     npt.NDArray
         time series of flags
     """
-    # hi_array = xr.where(nbrs_not_nan < nstat, -1, 0)
-    # condition1 = hi_array != -1
-    condition2 = (reference < hi_thres_a) & (pws_data > hi_thres_b)
-    condition3 = (reference >= hi_thres_a) & (
+    condition1 = (reference < hi_thres_a) & (pws_data > hi_thres_b)
+    condition2 = (reference >= hi_thres_a) & (
         pws_data > reference * hi_thres_b / hi_thres_a
     )
 
-    mask = (condition2 | condition3).astype(int)
+    mask = (condition1 | condition2).astype(int)
     mask.data[nbrs_not_nan < nstat] = -1
 
     return mask
