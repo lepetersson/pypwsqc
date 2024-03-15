@@ -79,12 +79,36 @@ def test_hi_filter():
        1, 0.    , 0.       , 0.       , 0.       , 0.       ,
        0.       , 0.       , 0.       , 0.       , 0.       , 0.       ,
        0.       ])
+
+    # fmt: on
     result = pypwsqc.flagging.hi_filter(
-      pws_data = pws_data,
-      nbrs_not_nan = nbrs_not_nan,
-      reference = reference,
-      hi_thres_a = 0.4,
-      hi_thres_b = 3,
-      n_stat=5,
-   )
+        pws_data=pws_data,
+        nbrs_not_nan=nbrs_not_nan,
+        reference=reference,
+        hi_thres_a=0.4,
+        hi_thres_b=3,
+        n_stat=5,
+    )
+    np.testing.assert_almost_equal(expected, result)
+
+    # running test again with different IO
+
+    # fmt: off
+    pws_data = np.array([0, 0, 0, 0, 15, 0, 15, 0])
+
+    nbrs_not_nan = np.array([2, 2, 2, 2, 12, 12, 12, 12])
+
+    reference = np.array([0.1, 0.2, 0.35, 0.2, 0.1, 0.3, 0.2, 0.2])
+
+    expected = np.array([-1, -1, -1, -1, 1, 0, 1, 0])
+
+    # fmt: on
+    result = pypwsqc.flagging.hi_filter(
+        pws_data=pws_data,
+        nbrs_not_nan=nbrs_not_nan,
+        reference=reference,
+        hi_thres_a=0.4,
+        hi_thres_b=10,
+        n_stat=5,
+    )
     np.testing.assert_almost_equal(expected, result)
