@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import numpy as np
 import numpy.typing as npt
+import xarray as xr
 
 
 def fz_filter(
@@ -45,7 +46,7 @@ def fz_filter(
 
     sensor_array = np.zeros(np.shape(pws_data))
     sensor_array[np.where(pws_data > 0)] = 1
-    sensor_array[np.where(pws_data == 0)] = 0  # redundant?
+    sensor_array[np.where(pws_data == 0)] = 0
 
     fz_array = np.ones(np.shape(pws_data), dtype=np.float_) * -1
 
@@ -73,7 +74,7 @@ def hi_filter(
     reference: npt.NDArray[np.float_],
     hi_thres_a: npt.NDArray[np.float_],
     hi_thres_b: npt.NDArray[np.float_],
-    nstat=npt.NDArray[np.float_],
+    n_stat=npt.NDArray[np.float_],
 ) -> npt.NDArray[np.float_]:
     """High Influx filter.
 
@@ -109,7 +110,4 @@ def hi_filter(
     )
 
     hi_array = (condition1 | condition2).astype(int)
-    hi_array = np.asarray(hi_array)
-    hi_array.data[nbrs_not_nan < nstat] = -1
-
-    return hi_array
+    return xr.where(nbrs_not_nan < n_stat, -1, hi_array)
