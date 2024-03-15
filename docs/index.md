@@ -16,6 +16,7 @@ installation.md
 :hidden:
 
 notebooks/faulty_zero_filter.ipynb
+notebooks/high_influx_filter.ipynb
 ```
 
 ```{toctree}

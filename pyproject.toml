@@ -46,6 +46,7 @@ poligrain = "^0.0.3"
 pytest = ">= 6"
 pytest-cov = ">= 3"
 jupyterlab = "^4.0.10"
+ipympl = "^0.9.3"
 
 [tool.poetry.extras]
 test = ["pytest", "pytest-cov", "nbmake"]
@@ -146,6 +147,7 @@ ignore = [
   "PLR2004",  # Magic value used in comparison
   "ISC001",   # Conflicts with formatter
   "T201",     # print statement should be allowed
+  "PD003",    # false positive when using xarray
 ]
 
 # Disabled because this would also be forced in notebooks where
@@ -156,9 +158,10 @@ ignore = [
 # typing-modules = ["pypwsqc._compat.typing"]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**" = ["T20", "D"]
+"tests/**" = ["T20", "D", "E501"]
 "noxfile.py" = ["T20", "D100"]
 "docs/conf.py" = ["D100", "A001"]
+"docs/notebooks/**" = ["E501"]
 
 [tool.ruff.lint.pydocstyle]
 convention = "numpy"
