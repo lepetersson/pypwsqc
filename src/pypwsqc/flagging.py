@@ -81,23 +81,32 @@ def hi_filter(
     This function applies the HI filter from the R package PWSQC,
     flagging unrealistically high rainfall amounts.
 
-    https://github.com/LottedeVos/PWSQC/tree/master/R
+    The Python code has been translated from the original R code,
+    to be found here: https://github.com/LottedeVos/PWSQC/tree/master/R.
 
-    The function returns an array with [...]
+    The function returns an array with zeros, ones or -1 per time step
+    and station.
+    The flag 0 means that no high influx has been detected.
+    The flag 1 means that high influx has been detected.
+    The flag -1 means that no flagging was done because not enough
+    neighbouring stations are reporting rainfall to make a reliable
+    evaluation.
 
     Parameters
     ----------
     pws_data
         The rainfall time series of the PWS that should be flagged
-    distance_matrix
-        The rainfall time series of the PWS that should be flagged
+    nbrs_not_nan
+        Number of neighbouring stations reporting rainfall
     reference
         The rainfall time series of the reference, which can be e.g.
-        the median of neighboring PWS data.
+        the median of neighboring stations
     hi_thres_a
-        threshold for median rainfall of stations within range d [mm]
+        threshold for median rainfall of neighbouring stations [mm]
     hi_thres_b
         upper rainfall limit [mm]
+    n_stat
+        threshold for number of neighbours reporting rainfall
 
     Returns
     -------
