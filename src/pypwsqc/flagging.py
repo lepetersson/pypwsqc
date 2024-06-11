@@ -9,7 +9,7 @@ import xarray as xr
 
 
 def fz_filter(
-    pws_data: npt.NDArray[np.float_], reference: npt.NDArray[np.float_], nint: int = 6
+    pws_data: npt.NDArray[np.float_], reference: npt.NDArray[np.float_], nint: int = 6, n_stat=npt.NDArray[np.float_], nbrs_not_nan: npt.NDArray[np.float_]
 ) -> npt.NDArray[np.float_]:
     """Flag faulty zeros based on a reference time series.
 
@@ -67,7 +67,7 @@ def fz_filter(
                 fz_array[i, j] = 0
             else:
                 fz_array[i, j] = 1
-    return fz_array
+    return xr.where(nbrs_not_nan < n_stat, -1, fz_array)
 
 
 def hi_filter(
