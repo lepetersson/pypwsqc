@@ -66,8 +66,8 @@ def fz_filter(
     # Wet timesteps of the reference
     ref_array[np.where(reference > 0)] = 1
 
-    for i in np.arange(len(pws_data)):
-        for j in np.arange(len(pws_data[1])):
+    for i in np.arange(len(len(pws_data.id))):
+        for j in np.arange(len(pws_data.time)):
             if j < nint:
                 fz_array[i, j] = -1
             elif sensor_array[i, j] > 0:

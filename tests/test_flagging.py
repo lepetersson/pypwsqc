@@ -14,6 +14,9 @@ def test_fz_filter():
        0.   , 0.   , 0.   , 0.   , 0.   , 0.   , 0.   , 0.101, 0.   ,
        0.   ])
 
+    nbrs_not_nan = np.array([24, 23, 24, 23, 26, 23, 25, 22, 23, 23, 23, 23, 23, 23, 22, 23, 23,
+       26, 26, 25, 2, 2, 2, 25, 23])
+
     reference = np.array(
       [0.101     , 0.25136087, 0.1010425 , 0.        , 0.05012029,
        0.101     , 0.101     , 0.101     , 0.303     , 0.20048115,
@@ -25,11 +28,17 @@ def test_fz_filter():
        0.        , 0.        ])
 
     expected = np.array(
-        [-1., -1., -1., -1., -1., -1.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,
+        [-1., -1., -1., 0., 0., 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,
         0.,  0.,  0.,  0.,  1.,  1.,  1.,  0.,  0.,  0.,  0.,  0.,  0.,
-        0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0])
+        0.,  0.,  0.,  0.,  0.,  0.,  -1.,  -1.,  -1.,  0.,  0])
     # fmt: on
-    result = pypwsqc.flagging.fz_filter(pws_data, reference, nint=6)
+    result = pypwsqc.flagging.fz_filter(
+        pws_data,
+        nbrs_not_nan,
+        reference,
+        nint=3,
+        nstat=5,
+    )
     np.testing.assert_almost_equal(expected, result)
 
     # the same test as above but with different `nint`
