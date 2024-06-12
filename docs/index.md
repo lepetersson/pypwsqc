@@ -15,9 +15,7 @@ installation.md
 :caption: Examples
 :hidden:
 
-notebooks/faulty_zero_filter.ipynb
-notebooks/high_influx_filter.ipynb
-notebooks/station_outlier_filter.ipynb
+notebooks/merged_filters.ipynb
 ```
 
 ```{toctree}

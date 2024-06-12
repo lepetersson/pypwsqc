@@ -4,14 +4,17 @@
 from __future__ import annotations
 
 import numpy as np
-import numpy.typing as npt
 import xarray as xr
 
 
 def fz_filter(
-    pws_data: xr.DataArray, nbrs_not_nan: xr.DataArray, reference: xr.DataArray, nint: int, n_stat= int, 
+    pws_data: xr.DataArray,
+    nbrs_not_nan: xr.DataArray,
+    reference: xr.DataArray,
+    nint: int,
+    n_stat=int,
 ) -> xr.DataArray:
-    """Faulty Zeros filter. 
+    """Faulty Zeros filter.
 
     This function applies the FZ filter from the R package PWSQC,
     flagging erroneous observations of zero rainfall.
@@ -49,7 +52,7 @@ def fz_filter(
     xr.DataArray
         time series of flags
     """
-    # initialize
+    # initialize.
     sensor_array = np.empty_like(pws_data)
     ref_array = np.empty_like(pws_data)
     fz_array = np.empty_like(pws_data)
@@ -63,22 +66,20 @@ def fz_filter(
     # Wet timesteps of the reference
     ref_array[np.where(reference > 0)] = 1
 
-    for i in np.arange(len(pws_data)):  
-        for j in np.arange(len(pws_data[1])): 
-
+    for i in np.arange(len(pws_data)):
+        for j in np.arange(len(pws_data[1])):
             if j < nint:
                 fz_array[i, j] = -1
-            else: 
-                if sensor_array[i, j] > 0:
-                    fz_array[i, j] = 0
-                elif fz_array[i, j - 1] == 1:
-                    fz_array[i, j] = 1
-                elif (np.sum(sensor_array[i, j - nint : j + 1]) > 0) or (
-                    np.sum(ref_array[i, j - nint : j + 1]) < nint + 1
-                ):
-                    fz_array[i, j] = 0
-                else:
-                    fz_array[i, j] = 1
+            elif sensor_array[i, j] > 0:
+                fz_array[i, j] = 0
+            elif fz_array[i, j - 1] == 1:
+                fz_array[i, j] = 1
+            elif (np.sum(sensor_array[i, j - nint : j + 1]) > 0) or (
+                np.sum(ref_array[i, j - nint : j + 1]) < nint + 1
+            ):
+                fz_array[i, j] = 0
+            else:
+                fz_array[i, j] = 1
 
         fz_array = fz_array.astype(int)
     return xr.where(nbrs_not_nan < n_stat, -1, fz_array)
@@ -90,7 +91,7 @@ def hi_filter(
     reference: xr.DataArray,
     hi_thres_a: int,
     hi_thres_b: int,
-    n_stat= int,
+    n_stat=int,
 ) -> xr.DataArray:
     """High Influx filter.
 
