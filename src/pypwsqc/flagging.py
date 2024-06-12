@@ -52,7 +52,7 @@ def fz_filter(
     xr.DataArray
         time series of flags
     """
-    # initialize.
+    # initialize
     sensor_array = np.empty_like(pws_data)
     ref_array = np.empty_like(pws_data)
     fz_array = np.empty_like(pws_data)
