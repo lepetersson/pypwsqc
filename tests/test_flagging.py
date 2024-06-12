@@ -37,7 +37,7 @@ def test_fz_filter():
         nbrs_not_nan,
         reference,
         nint=3,
-        nstat=5,
+        n_stat=5,
     )
     np.testing.assert_almost_equal(expected, result)
 
