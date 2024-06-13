@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import numpy as np
+import xarray as xr
 
 import pypwsqc
 
@@ -13,6 +14,7 @@ def test_fz_filter():
        0.   , 0.   , 0.101, 0.   , 0.   , 0.   , 0.   , 0.   , 0.   ,
        0.   , 0.   , 0.   , 0.   , 0.   , 0.   , 0.   , 0.101, 0.   ,
        0.   ])
+    pws_data = xr.DataArray(np.atleast_2d(pws_data), coords={'id': ['station_1',], 'time': range(len(pws_data))})
 
     nbrs_not_nan = np.array([24, 23, 24, 23, 26, 23, 25, 22, 23, 23, 23, 23, 23, 23, 22, 23, 23,
        26, 26, 25, 2, 2, 2, 25, 23])
@@ -26,6 +28,7 @@ def test_fz_filter():
        0.101     , 0.101     , 0.101     , 0.0505    , 0.        ,
        0.        , 0.        , 0.        , 0.        , 0.        ,
        0.        , 0.        ])
+    reference = xr.DataArray(np.atleast_2d(reference), coords={'id': ['median_rain',], 'time': range(len(reference))})
 
     expected = np.array(
         [-1., -1., -1., 0., 0., 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,
@@ -39,7 +42,7 @@ def test_fz_filter():
         nint=3,
         n_stat=5,
     )
-    np.testing.assert_almost_equal(expected, result)
+    np.testing.assert_almost_equal(expected, result.data)
 
     # the same test as above but with different `nint`
     # fmt: off
@@ -49,7 +52,10 @@ def test_fz_filter():
       0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0])
     # fmt: on
     result = pypwsqc.flagging.fz_filter(pws_data, reference, nint=7)
-    np.testing.assert_almost_equal(expected, result)
+    np.testing.assert_almost_equal(expected, result.data)
+
+
+# To-do: also test for two different station time series
 
 
 def test_hi_filter():
@@ -61,11 +67,15 @@ def test_hi_filter():
        0.       , 0.       , 0.       , 0.       , 0.       , 0.       ,
        0.       ])
 
+    pws_data = xr.DataArray(np.atleast_2d(pws_data), coords={'id': ['station_1',], 'time': range(len(pws_data))})
+
     nbrs_not_nan = np.array([24, 23, 24, 23, 26, 23, 25, 22, 23, 23, 23, 23, 23, 23, 22, 23, 23,
        26, 26, 25, 25, 23, 27, 25, 23])
 
     reference = np.array([0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
        0., 0., 0., 0., 0., 0., 0., 0.])
+
+    reference = xr.DataArray(np.atleast_2d(reference), coords={'id': ['median_rain',], 'time': range(len(reference))})
 
     expected = np.array([0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
        0., 0., 0., 0., 0., 0., 0., 0.])
@@ -79,7 +89,7 @@ def test_hi_filter():
         hi_thres_b=10,
         n_stat=5,
     )
-    np.testing.assert_almost_equal(expected, result)
+    np.testing.assert_almost_equal(expected, result.data)
 
     # the same test as above but with different `hi_thres_b`
     # fmt: off
@@ -98,16 +108,18 @@ def test_hi_filter():
         hi_thres_b=3,
         n_stat=5,
     )
-    np.testing.assert_almost_equal(expected, result)
+    np.testing.assert_almost_equal(expected, result.data)
 
     # running test again with different IO
 
     # fmt: off
     pws_data = np.array([0, 0, 0, 0, 15, 0, 15, 0])
+    pws_data = xr.DataArray(np.atleast_2d(pws_data), coords={'id': ['station_1',], 'time': range(len(pws_data))})
 
     nbrs_not_nan = np.array([2, 2, 2, 2, 12, 12, 12, 12])
 
     reference = np.array([0.1, 0.2, 0.35, 0.2, 0.1, 0.3, 0.2, 0.2])
+    reference = xr.DataArray(np.atleast_2d(reference), coords={'id': ['median_rain',], 'time': range(len(reference))})
 
     expected = np.array([-1, -1, -1, -1, 1, 0, 1, 0])
 
@@ -120,4 +132,4 @@ def test_hi_filter():
         hi_thres_b=10,
         n_stat=5,
     )
-    np.testing.assert_almost_equal(expected, result)
+    np.testing.assert_almost_equal(expected, result.data)
