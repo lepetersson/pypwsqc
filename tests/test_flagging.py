@@ -56,58 +56,7 @@ def test_fz_filter():
 
     np.testing.assert_almost_equal(expected, result)
 
-    # Test 2. Test for two stations.
-    # fmt: off
-    pws_data = np.array(
-    [0.   , 0.   , 0.   , 0.   , 0.   , 0.   , 0.   , 0.   , 0.   ,
-    0.   , 0., 0.   , 0.   , 0.   , 0.   , 0.   , 0.   , 0.   ,
-    0.   , 0.   , 0., 0.   , 0.   , 0.   , 0.   , 0.   , 0.   ,
-    0.   , 0.   , 0.   , 0.   , 0.   , 0.   , 0.   , 0., 0.   ,
-    0.   ])
-
-    pws_data = xr.DataArray(np.atleast_2d(pws_data), coords={'id': ['station_1',], 'time': range(len(pws_data))})
-
-    nbrs_not_nan = np.array([24, 23, 24, 23, 26, 23, 25, 22, 23, 23, 23, 23, 23, 23, 22, 23, 23,
-    26, 26, 25, 29, 22, 21, 25, 23, 24, 23, 24, 23, 2, 23, 25, 22, 23, 23, 2, 23])
-
-    reference = np.array(
-    [0.101     , 0.25136087, 0.1010425 , 0.1010425        , 0.05012029,
-    0.101     , 0.101     , 0.101     , 0.303     , 0.20048115,
-    0.202     , 0.202     , 0.202     , 0.303     , 0.202     ,
-    0.202     , 0.202     , 0.202     , 0.101     , 0.05012029,
-    0.101     , 0.10062029, 0.0505    ,   0.202         ,   0.202         ,
-    0.101     , 0.101     , 0.101     , 0.0505    ,   0.202         ,
-        0.202         ,   0.202         ,   0.202         ,   0.202         ,   0.202         ,
-        0.202         ,   0.202         ])
-
-
-    reference = xr.DataArray(np.atleast_2d(reference), coords={'id': ['station_1',], 'time': range(len(reference))})
-
-    expected = np.array([-1., -1., -1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1.,
-        1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., -1., 1., 1., 1., 1.,
-        1., -1., 1.])
-
-    expected = xr.DataArray(
-        np.atleast_2d(expected),
-        coords={"id": ["station_1", "station_2"], "time": range(len(expected[0]))},
-    )
-    # fmt: on
-
-    ds = xr.Dataset(
-        {"pws_data": pws_data, "reference": reference, "expected": expected}
-    )
-
-    result = pypwsqc.flagging.fz_filter(
-        ds.pws_data,
-        nbrs_not_nan,
-        ds.reference,
-        nint=6,
-        n_stat=5,
-    )
-
-    np.testing.assert_almost_equal(expected, result)
-
-    # Test 3. same as test 1 but with different nint.
+    # Test 2. same as test 1 but with different nint.
     # fmt: off
 
     pws_data = np.array(

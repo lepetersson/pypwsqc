@@ -81,7 +81,7 @@ def fz_filter(
             else:
                 fz_array[i, j] = 1
 
-        fz_array = fz_array.astype(int)
+    fz_array = fz_array.astype(int)
     return xr.where(nbrs_not_nan < n_stat, -1, fz_array)
 
 
