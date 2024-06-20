@@ -7,6 +7,9 @@
 - [PR 3](https://github.com/OpenSenseAction/pypwsqc/pull/3) First implementation
   and example notebook for faulty zero filter (by
   [@cchwala](https://github.com/cchwala))
+- [PR 31](https://github.com/OpenSenseAction/pypwsqc/pull/31) Merge FZ and HI
+  filter into one notebook and fix FZ filter code (by
+  [@lepetersson](https://github.com/lepetersson))
 
 ### Bug fixes
 
