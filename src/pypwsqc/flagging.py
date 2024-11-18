@@ -10,7 +10,8 @@ import pandas as pd
 
 
 def fz_filter(
-    pws_data: npt.NDArray[np.float_], reference: npt.NDArray[np.float_], nint: int = 6
+    ds_pws: npt.NDArray[np.float_], nint: npt.NDArray[np.float_], 
+    n_stat: npt.NDArray[np.float_]
 ) -> npt.NDArray[np.float_]:
     """Flag faulty zeros based on a reference time series.
 
@@ -42,37 +43,76 @@ def fz_filter(
     npt.NDArray
         time series of flags
     """
-    ref_array = np.zeros(np.shape(pws_data))
-    ref_array[np.where(reference > 0)] = 1
+    pws_data=ds_pws.rainfall
+    nbrs_not_nan=ds_pws.nbrs_not_nan
+    reference=ds_pws.reference
 
-    sensor_array = np.zeros(np.shape(pws_data))
+    # find first rainfall observation in each time series
+    first_non_nan_index = ds_pws["rainfall"].notnull().argmax(dim="time")
+
+    # find last rainfall observation in each time series
+    last_non_nan_index = ds_pws["rainfall"][::-1].notnull().argmax(dim="time")
+    last_non_nan_index = ds_pws.sizes["time"] - 1 - last_non_nan_index  # Convert to original indexing
+
+    # Create a mask that is True up to the first valid index for each station, False afterward
+    mask = xr.DataArray(
+    np.arange(ds_pws.sizes["time"]), dims="time"
+    ) < first_non_nan_index.broadcast_like(ds_pws["rainfall"])
+
+    # Create a mask for time steps after the last valid index for each station
+    mask_after_last = xr.DataArray(
+    np.arange(ds_pws.sizes["time"]), dims="time"
+    ) > last_non_nan_index.broadcast_like(ds_pws["rainfall"])
+    
+    # initialize arrays
+    sensor_array = np.empty_like(pws_data)
+    ref_array = np.empty_like(pws_data)
+    fz_array = np.empty_like(pws_data)
+
+    # Wet timestep at each station
     sensor_array[np.where(pws_data > 0)] = 1
+
+    # Dry timestep at each station
     sensor_array[np.where(pws_data == 0)] = 0
 
-    fz_array = np.ones(np.shape(pws_data), dtype=np.float_) * -1
+    # NaN timestep at each station
+    sensor_array[np.where(np.isnan(pws_data))] = -1
+    
+    # Wet timesteps of the reference
+    ref_array[np.where(reference > 0)] = 1
 
-    for i in np.arange(nint, np.shape(pws_data)[0]):
-        if sensor_array[i] > 0:
-            fz_array[i] = 0
-        elif fz_array[i - 1] == 1:
-            fz_array[i] = 1
-        # TODO: check why `< nint + 1` is used here.
-        #       should `nint`` be scaled with a selectable factor?
-        elif (np.sum(sensor_array[i - nint : i + 1]) > 0) or (
-            np.sum(ref_array[i - nint : i + 1]) < nint + 1
-        ):
-            fz_array[i] = 0
-        else:
-            fz_array[i] = 1
+    for i in np.arange(len(pws_data.id.data)):
+        for j in np.arange(len(pws_data.time.data)):
+            if j < nint:
+                fz_array[i, j] = -1
+            elif sensor_array[i, j] > 0:
+                fz_array[i, j] = 0
+            elif fz_array[i, j - 1] == 1:
+                fz_array[i, j] = 1
+            elif (np.sum(sensor_array[i, j - nint : j + 1]) > 0) or (
+                np.sum(ref_array[i, j - nint : j + 1]) < nint + 1
+            ):
+                fz_array[i, j] = 0
+            else:
+                fz_array[i, j] = 1
 
-    # fz_array.data[nbrs_not_nan < nstat] = -1
-    return fz_array
+    fz_array = fz_array.astype(int)
+    fz_flag = xr.where(nbrs_not_nan < n_stat, -1, fz_array)
+
+    # add to dataset
+    ds_pws["fz_flag"] = fz_flag
+
+    # set fz_flag to -1 up to the first valid rainfall observation
+    ds_pws["fz_flag"] = ds_pws["fz_flag"].where(~mask, -1)
+
+    # set fz_flag to -1 after the last valid rainfall observation
+    ds_pws["fz_flag"] = ds_pws["fz_flag"].where(~mask_after_last, -1)
+    
+    return ds_pws
 
 
 def hi_filter(
-    pws_data: npt.NDArray[np.float_],
-    nbrs_not_nan: npt.NDArray[np.float_],
-    reference: npt.NDArray[np.float_],
+    ds_pws: npt.NDArray[np.float_],
     hi_thres_a: npt.NDArray[np.float_],
     hi_thres_b: npt.NDArray[np.float_],
     n_stat=npt.NDArray[np.float_],
@@ -114,13 +154,48 @@ def hi_filter(
     npt.NDArray
         time series of flags
     """
-    condition1 = (reference < hi_thres_a) & (pws_data > hi_thres_b)
-    condition2 = (reference >= hi_thres_a) & (
-        pws_data > reference * hi_thres_b / hi_thres_a
+
+    # find first rainfall observation in each time series
+    first_non_nan_index = ds_pws["rainfall"].notnull().argmax(dim="time")
+
+    # find last rainfall observation in each time series
+    last_non_nan_index = ds_pws["rainfall"][::-1].notnull().argmax(dim="time")
+    last_non_nan_index = ds_pws.sizes["time"] - 1 - last_non_nan_index  # Convert to original indexing
+
+    # Create a mask that is True up to the first valid index for each station, False afterward
+    mask = xr.DataArray(
+    np.arange(ds_pws.sizes["time"]), dims="time"
+    ) < first_non_nan_index.broadcast_like(ds_pws["rainfall"])
+
+    # Create a mask for time steps after the last valid index for each station
+    mask_after_last = xr.DataArray(
+    np.arange(ds_pws.sizes["time"]), dims="time"
+    ) > last_non_nan_index.broadcast_like(ds_pws["rainfall"])
+
+    # Create a mask that is True up to the first valid index for each station, False afterward
+    mask = xr.DataArray(
+    np.arange(ds_pws.sizes["time"]), dims="time"
+    ) < first_non_nan_index.broadcast_like(ds_pws["rainfall"])
+    
+    condition1 = (ds_pws.reference < hi_thres_a) & (ds_pws.rainfall > hi_thres_b)
+    condition2 = (ds_pws.reference >= hi_thres_a) & (
+        ds_pws.rainfall > ds_pws.reference * hi_thres_b / hi_thres_a
     )
 
     hi_array = (condition1 | condition2).astype(int)
-    return xr.where(nbrs_not_nan < n_stat, -1, hi_array)
+
+    hi_flag = xr.where(ds_pws.nbrs_not_nan < n_stat, -1, hi_array)
+
+    # add to dataset
+    ds_pws["hi_flag"] = hi_flag
+
+    # set hi_flag to -1 up to the first valid rainfall observation
+    ds_pws["hi_flag"] = ds_pws["hi_flag"].where(~mask, -1)
+
+    # set hi_flag to -1 after the last valid rainfall observation
+    # ds_pws["hi_flag"] = ds_pws["hi_flag"].where(~mask_after_last, -1)
+    
+    return ds_pws
 
 
 def so_filter_one_station(da_station, da_neighbors, evaluation_period, mmatch):
