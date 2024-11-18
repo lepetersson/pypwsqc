@@ -123,12 +123,12 @@ def hi_filter(
     return xr.where(nbrs_not_nan < n_stat, -1, hi_array)
 
 
-def so_filter_one_station(da_station, da_neighbors, window_length):
+def so_filter_one_station(da_station, da_neighbors, evaluation_period, mmatch):
 
     # rolling pearson correlation
     s_station = da_station.to_series()
     s_neighbors = da_neighbors.to_series()
-    corr = s_station.rolling(window_length, min_periods= 1).corr(s_neighbors)
+    corr = s_station.rolling(evaluation_period, min_periods= 1).corr(s_neighbors)
     ds = xr.Dataset.from_dataframe(pd.DataFrame({'corr': corr}))
 
     # create dataframe of neighboring stations
@@ -138,11 +138,11 @@ def so_filter_one_station(da_station, da_neighbors, window_length):
     # boolean arrays - True if a rainy time step, False if 0 or NaN.
     rainy_timestep_at_nbrs = (df > 0)
     
-    # rolling sum of number of rainy timesteps in last mint period, per neighbor. 
-    wet_timesteps_last_mint_period = rainy_timestep_at_nbrs.rolling(mint, min_periods=1).sum()
+    # rolling sum of number of rainy timesteps in last evaluation_period period, per neighbor. 
+    wet_timesteps_last_evaluation_period_period = rainy_timestep_at_nbrs.rolling(evaluation_period, min_periods=1).sum()
     
-    # per time step and neighbor, does the nbr have more than mmatch wet time steps in the last mint period? (true/false)
-    enough_matches_per_nbr = (wet_timesteps_last_mint_period > mmatch)
+    # per time step and neighbor, does the nbr have more than mmatch wet time steps in the last evaluation_period period? (true/false)
+    enough_matches_per_nbr = (wet_timesteps_last_evaluation_period_period > mmatch)
     
     # summing how many neighbors that have enough matches per time step
     nr_nbrs_with_enough_matches = enough_matches_per_nbr.sum(axis = 1)
@@ -154,7 +154,7 @@ def so_filter_one_station(da_station, da_neighbors, window_length):
 def so_filter(
 ds_pws: npt.NDArray[np.float_],
 distance_matrix: npt.NDArray[np.float_],
-mint: npt.NDArray[np.float_],
+evaluation_period: npt.NDArray[np.float_],
 mmatch: npt.NDArray[np.float_],
 gamma: npt.NDArray[np.float_],
 n_stat=npt.NDArray[np.float_],
@@ -171,7 +171,7 @@ max_distance = npt.NDArray[np.float_],
 
     In its original implementation, any interval with at least `mrain` 
     intervals of nonzero rainfall measurements is evaluated. 
-    In this implementation, only a fixed rolling window of `mint` 
+    In this implementation, only a fixed rolling window of `evaluation_period` 
     intervals is evaluated. 
 
     The function returns an array with zeros, ones or -1 per time step
@@ -180,7 +180,7 @@ max_distance = npt.NDArray[np.float_],
     The flag 1 means that a station outlier has been detected.
     The flag -1 means that no flagging was done because not enough
     neighbouring stations are reporting rainfall to make a reliable
-    evaluation or that the previous mint time steps was dry.
+    evaluation or that the previous evaluation_period time steps was dry.
 
     Parameters
     ----------
@@ -188,12 +188,12 @@ max_distance = npt.NDArray[np.float_],
         xarray data set
     nbrs_not_nan
         Number of neighbouring stations reporting rainfall
-    mint
+    evaluation_period
         length of (rolling) window for correlation calculation
         [timesteps]
     mmatch
-        threshold for matching rainy intervals in evaluation period
-        [timesteps]
+        threshold for numer of matching rainy intervals in 
+        evaluation period [timesteps]
     gamma
         threshold for rolling median pearson correlation [-]
     n_stat
@@ -206,6 +206,11 @@ max_distance = npt.NDArray[np.float_],
     npt.NDArray
         time series of flags
     """
+    # For each station (ID), get the index of the first non-NaN rainfall value
+    first_non_nan_index = ds_pws["rainfall"].notnull().argmax(dim="time")
+
+    # pass mmatch to so_filter_one_station
+    mmatch = mmatch 
     for i in range(len(ds_pws.id)):
     
         ds_station = ds_pws.isel(id=i)
@@ -233,7 +238,7 @@ max_distance = npt.NDArray[np.float_],
         else: 
 
         # run so-filter
-            ds_so_filter = so_filter_one_station(ds_station.rainfall, ds_neighbors.rainfall, window_length=mint)
+            ds_so_filter = so_filter_one_station(ds_station.rainfall, ds_neighbors.rainfall, evaluation_period, mmatch)
 
             median_correlation = ds_so_filter.corr.median(dim='id', skipna = True)
             ds_pws.median_corr_nbrs[i] = median_correlation
@@ -248,6 +253,6 @@ max_distance = npt.NDArray[np.float_],
             ds_pws["so_flag"][i, :first_valid_time] = -1 
 
         # disregard warm up period
-            ds_pws.so_flag[i, first_valid_time:(first_valid_time+mint)] = -1
+            ds_pws.so_flag[i, first_valid_time:(first_valid_time+evaluation_period)] = -1
 
     return ds_pws
