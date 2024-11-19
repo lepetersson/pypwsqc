@@ -50,20 +50,11 @@ def fz_filter(
     # find first rainfall observation in each time series
     first_non_nan_index = ds_pws["rainfall"].notnull().argmax(dim="time")
 
-    # find last rainfall observation in each time series
-    last_non_nan_index = ds_pws["rainfall"][::-1].notnull().argmax(dim="time")
-    last_non_nan_index = ds_pws.sizes["time"] - 1 - last_non_nan_index  # Convert to original indexing
-
     # Create a mask that is True up to the first valid index for each station, False afterward
     mask = xr.DataArray(
     np.arange(ds_pws.sizes["time"]), dims="time"
     ) < first_non_nan_index.broadcast_like(ds_pws["rainfall"])
 
-    # Create a mask for time steps after the last valid index for each station
-    mask_after_last = xr.DataArray(
-    np.arange(ds_pws.sizes["time"]), dims="time"
-    ) > last_non_nan_index.broadcast_like(ds_pws["rainfall"])
-    
     # initialize arrays
     sensor_array = np.empty_like(pws_data)
     ref_array = np.empty_like(pws_data)
@@ -74,10 +65,7 @@ def fz_filter(
 
     # Dry timestep at each station
     sensor_array[np.where(pws_data == 0)] = 0
-
-    # NaN timestep at each station
-    sensor_array[np.where(np.isnan(pws_data))] = -1
-    
+ 
     # Wet timesteps of the reference
     ref_array[np.where(reference > 0)] = 1
 
@@ -105,16 +93,20 @@ def fz_filter(
     # set fz_flag to -1 up to the first valid rainfall observation
     ds_pws["fz_flag"] = ds_pws["fz_flag"].where(~mask, -1)
 
-    # set fz_flag to -1 after the last valid rainfall observation
-    ds_pws["fz_flag"] = ds_pws["fz_flag"].where(~mask_after_last, -1)
+    # check if last nint timesteps are NaN in rolling window
+    nan_in_last_nint = ds_pws["rainfall"].rolling(time=nint, center=True).construct("window_dim")
+    all_nan_in_window = nan_in_last_nint.isnull().all(dim="window_dim")
+    
+    # Apply the mask to set fz_flag to -1 where the condition is met
+    ds_pws["fz_flag"] = ds_pws["fz_flag"].where(~all_nan_in_window, -1)
     
     return ds_pws
-
 
 def hi_filter(
     ds_pws: npt.NDArray[np.float_],
     hi_thres_a: npt.NDArray[np.float_],
     hi_thres_b: npt.NDArray[np.float_],
+    nint: npt.NDArray[np.float_],
     n_stat=npt.NDArray[np.float_],
 ) -> npt.NDArray[np.float_]:
     """High Influx filter.
@@ -158,20 +150,6 @@ def hi_filter(
     # find first rainfall observation in each time series
     first_non_nan_index = ds_pws["rainfall"].notnull().argmax(dim="time")
 
-    # find last rainfall observation in each time series
-    last_non_nan_index = ds_pws["rainfall"][::-1].notnull().argmax(dim="time")
-    last_non_nan_index = ds_pws.sizes["time"] - 1 - last_non_nan_index  # Convert to original indexing
-
-    # Create a mask that is True up to the first valid index for each station, False afterward
-    mask = xr.DataArray(
-    np.arange(ds_pws.sizes["time"]), dims="time"
-    ) < first_non_nan_index.broadcast_like(ds_pws["rainfall"])
-
-    # Create a mask for time steps after the last valid index for each station
-    mask_after_last = xr.DataArray(
-    np.arange(ds_pws.sizes["time"]), dims="time"
-    ) > last_non_nan_index.broadcast_like(ds_pws["rainfall"])
-
     # Create a mask that is True up to the first valid index for each station, False afterward
     mask = xr.DataArray(
     np.arange(ds_pws.sizes["time"]), dims="time"
@@ -192,9 +170,13 @@ def hi_filter(
     # set hi_flag to -1 up to the first valid rainfall observation
     ds_pws["hi_flag"] = ds_pws["hi_flag"].where(~mask, -1)
 
-    # set hi_flag to -1 after the last valid rainfall observation
-    # ds_pws["hi_flag"] = ds_pws["hi_flag"].where(~mask_after_last, -1)
+    # check if last nint timesteps are NaN in rolling window
+    nan_in_last_nint = ds_pws["rainfall"].rolling(time=nint, center=True).construct("window_dim")
+    all_nan_in_window = nan_in_last_nint.isnull().all(dim="window_dim")
     
+    # Apply the mask to set hi_flag to -1 where the condition is met
+    ds_pws["hi_flag"] = ds_pws["hi_flag"].where(~all_nan_in_window, -1)
+
     return ds_pws
 
 
