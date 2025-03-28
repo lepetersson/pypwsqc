@@ -10,9 +10,9 @@ import pandas as pd
 
 
 def fz_filter(
-    ds_pws: npt.NDArray[np.float_], nint: npt.NDArray[np.float_], 
-    n_stat: npt.NDArray[np.float_]
-) -> npt.NDArray[np.float_]:
+    ds_pws: npt.NDArray[np.float64], nint: npt.NDArray[np.float64], 
+    n_stat: npt.NDArray[np.float64]
+) -> npt.NDArray[np.float64]:
     """Flag faulty zeros based on a reference time series.
 
     This function applies the FZ filter from the R package PWSQC.
@@ -103,12 +103,12 @@ def fz_filter(
     return ds_pws
 
 def hi_filter(
-    ds_pws: npt.NDArray[np.float_],
-    hi_thres_a: npt.NDArray[np.float_],
-    hi_thres_b: npt.NDArray[np.float_],
-    nint: npt.NDArray[np.float_],
-    n_stat=npt.NDArray[np.float_],
-) -> npt.NDArray[np.float_]:
+    ds_pws: npt.NDArray[np.float64],
+    hi_thres_a: npt.NDArray[np.float64],
+    hi_thres_b: npt.NDArray[np.float64],
+    nint: npt.NDArray[np.float64],
+    n_stat=npt.NDArray[np.float64],
+) -> npt.NDArray[np.float64]:
     """High Influx filter.
 
     This function applies the HI filter from the R package PWSQC,
@@ -209,14 +209,14 @@ def so_filter_one_station(da_station, da_neighbors, evaluation_period, mmatch):
     return ds
 
 def so_filter(
-ds_pws: npt.NDArray[np.float_],
-distance_matrix: npt.NDArray[np.float_],
-evaluation_period: npt.NDArray[np.float_],
-mmatch: npt.NDArray[np.float_],
-gamma: npt.NDArray[np.float_],
-n_stat=npt.NDArray[np.float_],
-max_distance = npt.NDArray[np.float_],
-) -> npt.NDArray[np.float_]:
+ds_pws: npt.NDArray[np.float64],
+distance_matrix: npt.NDArray[np.float64],
+evaluation_period: npt.NDArray[np.float64],
+mmatch: npt.NDArray[np.float64],
+gamma: npt.NDArray[np.float64],
+n_stat=npt.NDArray[np.float64],
+max_distance = npt.NDArray[np.float64],
+) -> npt.NDArray[np.float64]:
 
     """Station Outlier filter.
 
