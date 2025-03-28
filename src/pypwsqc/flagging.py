@@ -13,7 +13,7 @@ def fz_filter(
     ds_pws: npt.NDArray[np.float64], nint: npt.NDArray[np.float64], 
     n_stat: npt.NDArray[np.float64]
 ) -> npt.NDArray[np.float64]:
-    """Flag faulty zeros based on a reference time series.
+    """Faulty Zeros Filter.
 
     This function applies the FZ filter from the R package PWSQC.
     The flag 1 means, a faulty zero has been detected. The flag -1
@@ -181,7 +181,7 @@ def hi_filter(
 
 
 def so_filter_one_station(da_station, da_neighbors, evaluation_period, mmatch):
-
+    
     # rolling pearson correlation
     s_station = da_station.to_series()
     s_neighbors = da_neighbors.to_series()
