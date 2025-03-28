@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import numpy as np
+import poligrain as plg
+import xarray as xr
 
 import pypwsqc
 
@@ -112,3 +114,31 @@ def test_hi_filter():
         n_stat=5,
     )
     np.testing.assert_almost_equal(expected, result)
+
+def test_so_filter():
+   # reproduce the flags for Ams16, 2017-08-12 to 2018-10-15
+
+   ds_pws = xr.open_dataset('test_dataset.nc')
+   expected = xr.open_dataarray('expected_array.nc')
+   distance_matrix = plg.spatial.calc_point_to_point_distances(ds_pws, ds_pws)
+   evaluation_period = 8064
+   id = "ams16"
+   
+   ds_pws['so_flag'] = xr.DataArray(np.ones((len(ds_pws.id), len(ds_pws.time)))*-999, dims=("id", "time"))
+   ds_pws['median_corr_nbrs'] = xr.DataArray(np.ones((len(ds_pws.id), len(ds_pws.time)))*-999, dims=("id", "time"))
+   
+   result = pypwsqc.flagging.so_filter(
+   ds_pws = ds_pws,
+   distance_matrix = distance_matrix,
+   evaluation_period = evaluation_period,
+   mmatch = 200,
+   gamma = 0.15,
+   n_stat = 5,
+   max_distance = 10e3,
+)
+   result_flags = result.so_flag.isel(time=slice(evaluation_period, None)).sel(id = id)
+
+   np.testing.assert_almost_equal(expected.to_numpy(), result_flags.to_numpy())
+
+
+
