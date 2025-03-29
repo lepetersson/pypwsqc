@@ -50,7 +50,6 @@ def test_fz_filter():
     result = pypwsqc.flagging.fz_filter(
         ds.pws_data,
         nbrs_not_nan,
-        ds.reference,
         nint=3,
         n_stat=5,
     )
@@ -107,7 +106,6 @@ def test_fz_filter():
     result = pypwsqc.flagging.fz_filter(
         ds.pws_data,
         nbrs_not_nan,
-        ds.reference,
         nint=7,
         n_stat=5,
     )
@@ -145,7 +143,6 @@ def test_hi_filter():
     result = pypwsqc.flagging.hi_filter(
         ds.pws_data,
         nbrs_not_nan,
-        ds.reference,
         hi_thres_a=0.4,
         hi_thres_b=10,
         n_stat=5,
@@ -170,7 +167,6 @@ def test_hi_filter():
     result = pypwsqc.flagging.hi_filter(
         ds.pws_data,
         nbrs_not_nan,
-        ds.reference,
         hi_thres_a=0.4,
         hi_thres_b=3,
         n_stat=5,
@@ -199,7 +195,6 @@ def test_hi_filter():
     result = pypwsqc.flagging.hi_filter(
         ds.pws_data,
         nbrs_not_nan,
-        ds.reference,
         hi_thres_a=0.4,
         hi_thres_b=10,
         n_stat=5,
