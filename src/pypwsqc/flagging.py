@@ -154,7 +154,8 @@ def hi_filter(
     # find first rainfall observation in each time series
     first_non_nan_index = ds_pws["rainfall"].notna().argmax(dim="time")
 
-    # Create a mask that is True up to the first valid index for each station, False afterward
+    # Create a mask that is True up to the first
+    # valid index for each station, False afterward
     mask = xr.DataArray(
         np.arange(ds_pws.sizes["time"]), dims="time"
     ) < first_non_nan_index.broadcast_like(ds_pws["rainfall"])
@@ -220,7 +221,8 @@ def so_filter_one_station(da_station, da_neighbors, evaluation_period, mmatch):
     # boolean arrays - True if a rainy time step, False if 0 or NaN.
     rainy_timestep_at_nbrs = df_nbrs > 0
 
-    # rolling sum of number of rainy timesteps in last evaluation_period period, per neighbor.
+    # rolling sum of number of rainy timesteps in
+    # last evaluation_period period, per neighbor.
     wet_timesteps_last_evaluation_period_period = rainy_timestep_at_nbrs.rolling(
         evaluation_period, min_periods=1
     ).sum()
@@ -289,7 +291,7 @@ def so_filter(
     Returns
     -------
     npt.NDArray
-        time series of flags
+        Time series of flags.
     """
     # For each station (ID), get the index of the first non-NaN rainfall value
     first_non_nan_index = ds_pws["rainfall"].notna().argmax(dim="time")
@@ -299,7 +301,8 @@ def so_filter(
         ds_station = ds_pws.isel(id=i)
         pws_id = ds_station.id.to_numpy()
 
-        # picking stations within max_distnance, excluding itself, for the whole duration of the time series
+        # picking stations within max_distnance, excluding itself,
+        # for the whole duration of the time series
         neighbor_ids = distance_matrix.id.data[
             (distance_matrix.sel(id=pws_id) < max_distance)
             & (distance_matrix.sel(id=pws_id) > 0)
@@ -308,8 +311,10 @@ def so_filter(
         # create data set for neighbors
         ds_neighbors = ds_pws.sel(id=neighbor_ids)
 
-        # if there are no observations in the time series, filter cannot be applied to the whole time series
-        # or if there are not enough stations nearby, filter cannot be applied to the whole time series
+        # if there are no observations in the time series, filter
+        # cannot be applied to the whole time series
+        # or if there are not enough stations nearby,
+        # filter cannot be applied to the whole time series
         if ds_pws.rainfall.sel(id=pws_id).isnull().all() or (
             len(neighbor_ids) < n_stat
         ):
