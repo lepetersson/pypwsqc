@@ -199,7 +199,7 @@ def so_filter_one_station(da_station, da_neighbors, evaluation_period, mmatch):
         length of (rolling) window for correlation calculation
         [timesteps]
     mmatch
-        threshold for numer of matching rainy intervals in
+        threshold for number of matching rainy intervals in
         evaluation period [timesteps]
 
     Returns
@@ -278,7 +278,7 @@ def so_filter(
         length of (rolling) window for correlation calculation
         [timesteps]
     mmatch
-        threshold for numer of matching rainy intervals in
+        threshold for number of matching rainy intervals in
         evaluation period [timesteps]
     gamma
         threshold for rolling median pearson correlation [-]
