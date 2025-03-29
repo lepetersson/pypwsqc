@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import numpy as np
 import numpy.typing as npt
-import xarray as xr
 import pandas as pd
+import xarray as xr
 
 
 def fz_filter(
@@ -150,7 +150,6 @@ def hi_filter(
     npt.NDArray
         time series of flags
     """
-
     # find first rainfall observation in each time series
     first_non_nan_index = ds_pws["rainfall"].notna().argmax(dim="time")
 
@@ -297,7 +296,6 @@ def so_filter(
     first_non_nan_index = ds_pws["rainfall"].notna().argmax(dim="time")
 
     for i in range(len(ds_pws.id)):
-
         ds_station = ds_pws.isel(id=i)
         pws_id = ds_station.id.to_numpy()
 
@@ -340,8 +338,8 @@ def so_filter(
         ds_pws["so_flag"][i, :first_valid_time] = -1
 
         # disregard warm up period
-        ds_pws.so_flag[i, first_valid_time : (first_valid_time + evaluation_period)] = (
-            -1
-        )
+        ds_pws.so_flag[
+            i, first_valid_time : (first_valid_time + evaluation_period)
+        ] = -1
 
     return ds_pws
