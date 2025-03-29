@@ -4,9 +4,40 @@
 
 ### New features
 
+### Bug fixes
+
+### Maintenance
+
+### Breaking changes
+
+## v0.1.0
+
+### New features
+
+- Implementation of indicator correlation filter by @JochenSeidel in
+  https://github.com/OpenSenseAction/pypwsqc/pull/34
+
+### Bug fixes
+
+### Maintenance
+
+- remove package version capping by @cchwala in
+  https://github.com/OpenSenseAction/pypwsqc/pull/35
+- Update Docstrings for IC Filter by @JochenSeidel in
+  https://github.com/OpenSenseAction/pypwsqc/pull/37
+
+### Breaking changes
+
+## v0.0.2
+
+### New features
+
 - [PR 3](https://github.com/OpenSenseAction/pypwsqc/pull/3) First implementation
   and example notebook for faulty zero filter (by
   [@cchwala](https://github.com/cchwala))
+- [PR 31](https://github.com/OpenSenseAction/pypwsqc/pull/31) Merge FZ and HI
+  filter into one notebook and fix FZ filter code (by
+  [@lepetersson](https://github.com/lepetersson))
 
 ### Bug fixes
 
