@@ -18,10 +18,12 @@ def test_fz_filter():
     0.   , 0.   , 0.   , 0.   , 0.   , 0.   , 0.   , 0., 0.   ,
     0.   ])
 
-    pws_data = xr.DataArray(np.atleast_2d(pws_data), coords={'id': ['station_1',], 'time': range(len(pws_data))})
+    rainfall = xr.DataArray(np.atleast_2d(pws_data), coords={'id': ['station_1',], 'time': range(len(pws_data))})
 
     nbrs_not_nan = np.array([24, 23, 24, 23, 26, 23, 25, 22, 23, 23, 23, 23, 23, 23, 22, 23, 23,
     26, 26, 25, 29, 22, 21, 25, 23, 24, 23, 24, 23, 2, 23, 25, 22, 23, 23, 2, 23])
+
+    nbrs_not_nan = xr.DataArray(np.atleast_2d(nbrs_not_nan), coords={'id': ['station_1',], 'time': range(len(nbrs_not_nan))})
 
     reference = np.array(
     [0.101     , 0.25136087, 0.1010425 , 0.1010425        , 0.05012029,
@@ -44,17 +46,21 @@ def test_fz_filter():
         # fmt: on
 
     ds = xr.Dataset(
-        {"pws_data": pws_data, "reference": reference, "expected": expected}
+        {
+            "rainfall": rainfall,
+            "reference": reference,
+            "expected": expected,
+            "nbrs_not_nan": nbrs_not_nan,
+        }
     )
 
     result = pypwsqc.flagging.fz_filter(
-        ds.pws_data,
-        nbrs_not_nan,
+        ds,
         nint=3,
         n_stat=5,
     )
 
-    np.testing.assert_almost_equal(expected, result)
+    np.testing.assert_almost_equal(expected[0], result.fz_flag.values[0])
 
     # Test 2. same as test 1 but with different nint.
     # fmt: off
@@ -66,10 +72,12 @@ def test_fz_filter():
         0.   , 0.   , 0.   , 0.   , 0.   , 0.   , 0.   , 0.101, 0.   ,
         0.   ]])
 
-    pws_data = xr.DataArray(np.atleast_2d(pws_data), coords={'id': ['station_2'], 'time': range(len(pws_data[0]))})
+    rainfall = xr.DataArray(np.atleast_2d(pws_data), coords={'id': ['station_2'], 'time': range(len(pws_data[0]))})
 
     nbrs_not_nan = np.array([24, 23, 24, 23, 26, 23, 25, 22, 23, 23, 23, 23, 23, 23, 22, 23, 23,
     26, 26, 25, 29, 22, 21, 25, 23, 24, 23, 24, 23, 2, 23, 25, 22, 23, 23, 2, 23])
+
+    nbrs_not_nan = xr.DataArray(np.atleast_2d(nbrs_not_nan), coords={'id': ['station_1',], 'time': range(len(nbrs_not_nan))})
 
     reference = np.array(
     [ [0.101     , 0.25136087, 0.1010425 , 0.        , 0.05012029,
@@ -100,17 +108,21 @@ def test_fz_filter():
     # fmt: on
 
     ds = xr.Dataset(
-        {"pws_data": pws_data, "reference": reference, "expected": expected}
+        {
+            "rainfall": rainfall,
+            "reference": reference,
+            "expected": expected,
+            "nbrs_not_nan": nbrs_not_nan,
+        }
     )
 
     result = pypwsqc.flagging.fz_filter(
-        ds.pws_data,
-        nbrs_not_nan,
+        ds,
         nint=7,
         n_stat=5,
     )
 
-    np.testing.assert_almost_equal(expected, result)
+    np.testing.assert_almost_equal(expected[0], result.fz_flag.values[0])
 
 
 def test_hi_filter():
@@ -122,10 +134,12 @@ def test_hi_filter():
        0.       , 0.       , 0.       , 0.       , 0.       , 0.       ,
        0.       ]])
 
-    pws_data = xr.DataArray(np.atleast_2d(pws_data), coords={'id': ['station_1',], 'time': range(len(pws_data[0]))})
+    rainfall = xr.DataArray(np.atleast_2d(pws_data), coords={'id': ['station_1',], 'time': range(len(pws_data[0]))})
 
     nbrs_not_nan = np.array([24, 23, 24, 23, 26, 23, 25, 22, 23, 23, 23, 23, 23, 23, 22, 23, 23,
        26, 26, 25, 25, 23, 27, 25, 23])
+    nbrs_not_nan = xr.DataArray(np.atleast_2d(nbrs_not_nan), coords={'id': ['station_1',], 'time': range(len(nbrs_not_nan))})
+
 
     reference = np.array([[0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
        0., 0., 0., 0., 0., 0., 0., 0.]])
@@ -137,14 +151,21 @@ def test_hi_filter():
 
     expected = xr.DataArray(np.atleast_2d(expected), coords={'id': ['station_1',], 'time': range(len(expected[0]))})
 
-    ds = xr.Dataset({"pws_data": pws_data, "reference": reference, "expected": expected})
+    ds = xr.Dataset(
+        {
+            "rainfall": rainfall,
+            "reference": reference,
+            "expected": expected,
+            "nbrs_not_nan": nbrs_not_nan,
+        }
+    )
 
     # fmt: on
     result = pypwsqc.flagging.hi_filter(
-        ds.pws_data,
-        nbrs_not_nan,
+        ds,
         hi_thres_a=0.4,
         hi_thres_b=10,
+        # nint=
         n_stat=5,
     )
 
@@ -159,14 +180,19 @@ def test_hi_filter():
        0.       , 0.       , 0.       , 0.       , 0.       , 0.       ,
        0.       ]])
 
-    expected = xr.DataArray(np.atleast_2d(expected), coords={'id': ['station_1',], 'time': range(len(expected[0]))})
+    rainfall = xr.DataArray(np.atleast_2d(expected), coords={'id': ['station_1',], 'time': range(len(expected[0]))})
 
-    ds = xr.Dataset({"pws_data": pws_data, "reference": reference, "expected": expected})
-
+    ds = xr.Dataset(
+        {
+            "rainfall": rainfall,
+            "reference": reference,
+            "expected": expected,
+            "nbrs_not_nan": nbrs_not_nan,
+        }
+    )
     # fmt: on
     result = pypwsqc.flagging.hi_filter(
-        ds.pws_data,
-        nbrs_not_nan,
+        ds,
         hi_thres_a=0.4,
         hi_thres_b=3,
         n_stat=5,
@@ -181,6 +207,7 @@ def test_hi_filter():
     pws_data = xr.DataArray(np.atleast_2d(pws_data), coords={'id': ['station_1',], 'time': range(len(pws_data[0]))})
 
     nbrs_not_nan = np.array([2, 2, 2, 2, 12, 12, 12, 12])
+    nbrs_not_nan = xr.DataArray(np.atleast_2d(nbrs_not_nan), coords={'id': ['station_1',], 'time': range(len(nbrs_not_nan))})
 
     reference = np.array([[0.1, 0.2, 0.35, 0.2, 0.1, 0.3, 0.2, 0.2]])
     reference = xr.DataArray(np.atleast_2d(reference), coords={'id': ['station_1',], 'time': range(len(reference[0]))})
@@ -189,12 +216,11 @@ def test_hi_filter():
 
     expected = xr.DataArray(np.atleast_2d(expected), coords={'id': ['station_1',], 'time': range(len(expected[0]))})
 
-    ds = xr.Dataset({"pws_data": pws_data, "reference": reference, "expected": expected})
+    ds = xr.Dataset({"pws_data": pws_data, "reference": reference, "expected": expected,  "nbrs_not_nan":nbrs_not_nan,})
 
     # fmt: on
     result = pypwsqc.flagging.hi_filter(
-        ds.pws_data,
-        nbrs_not_nan,
+        ds,
         hi_thres_a=0.4,
         hi_thres_b=10,
         n_stat=5,
@@ -206,7 +232,10 @@ def test_hi_filter():
 def test_so_filter():
     # reproduce the flags for Ams16, 2017-08-12 to 2018-10-15
 
-    ds_pws = xr.open_dataset("test_dataset.nc")
+    ds_pws = xr.open_dataset(""
+                             ""
+                             ""
+                             "test_dataset.nc")
     expected = xr.open_dataarray("expected_array.nc")
     distance_matrix = plg.spatial.calc_point_to_point_distances(ds_pws, ds_pws)
     evaluation_period = 8064
