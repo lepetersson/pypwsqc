@@ -48,7 +48,7 @@ def fz_filter(
     reference = ds_pws.reference
 
     # find first rainfall observation in each time series
-    first_non_nan_index = ds_pws["rainfall"].notnull().argmax(dim="time")
+    first_non_nan_index = ds_pws["rainfall"].notnull().argmax(dim="time")  # noqa: PD004
 
     # Create a mask that is True up to the first valid
     # index for each station, False afterward
@@ -151,7 +151,7 @@ def hi_filter(
         time series of flags
     """
     # find first rainfall observation in each time series
-    first_non_nan_index = ds_pws["rainfall"].notnull().argmax(dim="time")
+    first_non_nan_index = ds_pws["rainfall"].notnull().argmax(dim="time")  # noqa: PD004
 
     # Create a mask that is True up to the first
     # valid index for each station, False afterward
@@ -215,7 +215,7 @@ def so_filter_one_station(da_station, da_neighbors, evaluation_period, mmatch):
 
     # create dataframe of neighboring stations
     df_nbrs = da_neighbors.to_dataframe()
-    df_nbrs = df_nbrs["rainfall"].pivot_table("id")
+    df_nbrs = df_nbrs["rainfall"].unstack("id")  # noqa: PD010
 
     # boolean arrays - True if a rainy time step, False if 0 or NaN.
     rainy_timestep_at_nbrs = df_nbrs > 0
@@ -293,7 +293,7 @@ def so_filter(
         Time series of flags.
     """
     # For each station (ID), get the index of the first non-NaN rainfall value
-    first_non_nan_index = ds_pws["rainfall"].notnull().argmax(dim="time")
+    first_non_nan_index = ds_pws["rainfall"].notnull().argmax(dim="time")  # noqa: PD004
 
     for i in range(len(ds_pws.id)):
         ds_station = ds_pws.isel(id=i)

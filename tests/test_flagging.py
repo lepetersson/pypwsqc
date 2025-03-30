@@ -60,8 +60,7 @@ def test_fz_filter():
         n_stat=5,
     )
 
-    np.testing.assert_almost_equal(expected[0], result.fz_flag.values[0])
-
+    np.testing.assert_almost_equal(expected[0], result.fz_flag.data[0])
 
     # Test 2. same as test 1 but with different nint.
     # fmt: off
@@ -123,7 +122,7 @@ def test_fz_filter():
         n_stat=5,
     )
 
-    np.testing.assert_almost_equal(expected[0], result.fz_flag.values[0])
+    np.testing.assert_almost_equal(expected[0], result.fz_flag.data[0])
 
 
 def test_hi_filter():
