@@ -166,11 +166,11 @@ def test_hi_filter():
         ds,
         hi_thres_a=0.4,
         hi_thres_b=10,
-        # nint=
+        nint=8064,
         n_stat=5,
     )
 
-    np.testing.assert_almost_equal(expected, result.data)
+    np.testing.assert_almost_equal(expected, result.hi_flag.data)
 
     # the same test as above but with different `hi_thres_b`
     # fmt: off
@@ -181,7 +181,7 @@ def test_hi_filter():
        0.       , 0.       , 0.       , 0.       , 0.       , 0.       ,
        0.       ]])
 
-    rainfall = xr.DataArray(np.atleast_2d(expected), coords={'id': ['station_1',], 'time': range(len(expected[0]))})
+    expected = xr.DataArray(np.atleast_2d(expected), coords={'id': ['station_1',], 'time': range(len(expected[0]))})
 
     ds = xr.Dataset(
         {
@@ -196,16 +196,17 @@ def test_hi_filter():
         ds,
         hi_thres_a=0.4,
         hi_thres_b=3,
+        nint=8064,
         n_stat=5,
     )
 
-    np.testing.assert_almost_equal(expected, result.data)
+    np.testing.assert_almost_equal(expected, result.hi_flag.data)
 
     # running test again with different IO
 
     # fmt: off
     pws_data = np.array([[0, 0, 0, 0, 15, 0, 15, 0]])
-    pws_data = xr.DataArray(np.atleast_2d(pws_data), coords={'id': ['station_1',], 'time': range(len(pws_data[0]))})
+    rainfall = xr.DataArray(np.atleast_2d(pws_data), coords={'id': ['station_1',], 'time': range(len(pws_data[0]))})
 
     nbrs_not_nan = np.array([2, 2, 2, 2, 12, 12, 12, 12])
     nbrs_not_nan = xr.DataArray(np.atleast_2d(nbrs_not_nan), coords={'id': ['station_1',], 'time': range(len(nbrs_not_nan))})
@@ -217,17 +218,18 @@ def test_hi_filter():
 
     expected = xr.DataArray(np.atleast_2d(expected), coords={'id': ['station_1',], 'time': range(len(expected[0]))})
 
-    ds = xr.Dataset({"pws_data": pws_data, "reference": reference, "expected": expected,  "nbrs_not_nan":nbrs_not_nan,})
+    ds = xr.Dataset({"rainfall": rainfall, "reference": reference, "expected": expected,  "nbrs_not_nan":nbrs_not_nan,})
 
     # fmt: on
     result = pypwsqc.flagging.hi_filter(
         ds,
         hi_thres_a=0.4,
         hi_thres_b=10,
+        nint=8064,
         n_stat=5,
     )
 
-    np.testing.assert_almost_equal(expected, result)
+    np.testing.assert_almost_equal(expected, result.hi_flag.data)
 
 
 def test_so_filter():
