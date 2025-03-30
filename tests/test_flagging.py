@@ -234,8 +234,8 @@ def test_hi_filter():
 def test_so_filter():
     # reproduce the flags for Ams16, 2017-08-12 to 2018-10-15
 
-    ds_pws = xr.open_dataset("test_dataset.nc")
-    expected = xr.open_dataarray("expected_array.nc")
+    ds_pws = xr.open_dataset("tests/test_dataset.nc")
+    expected = xr.open_dataarray("tests/expected_array.nc")
     distance_matrix = plg.spatial.calc_point_to_point_distances(ds_pws, ds_pws)
     evaluation_period = 8064
     pws_id = "ams16"
