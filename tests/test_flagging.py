@@ -62,6 +62,7 @@ def test_fz_filter():
 
     np.testing.assert_almost_equal(expected[0], result.fz_flag.values[0])
 
+
     # Test 2. same as test 1 but with different nint.
     # fmt: off
 
@@ -77,7 +78,7 @@ def test_fz_filter():
     nbrs_not_nan = np.array([24, 23, 24, 23, 26, 23, 25, 22, 23, 23, 23, 23, 23, 23, 22, 23, 23,
     26, 26, 25, 29, 22, 21, 25, 23, 24, 23, 24, 23, 2, 23, 25, 22, 23, 23, 2, 23])
 
-    nbrs_not_nan = xr.DataArray(np.atleast_2d(nbrs_not_nan), coords={'id': ['station_1',], 'time': range(len(nbrs_not_nan))})
+    nbrs_not_nan = xr.DataArray(np.atleast_2d(nbrs_not_nan), coords={'id': ['station_2',], 'time': range(len(nbrs_not_nan))})
 
     reference = np.array(
     [ [0.101     , 0.25136087, 0.1010425 , 0.        , 0.05012029,
@@ -232,10 +233,7 @@ def test_hi_filter():
 def test_so_filter():
     # reproduce the flags for Ams16, 2017-08-12 to 2018-10-15
 
-    ds_pws = xr.open_dataset(""
-                             ""
-                             ""
-                             "test_dataset.nc")
+    ds_pws = xr.open_dataset("" "" "" "test_dataset.nc")
     expected = xr.open_dataarray("expected_array.nc")
     distance_matrix = plg.spatial.calc_point_to_point_distances(ds_pws, ds_pws)
     evaluation_period = 8064
