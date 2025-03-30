@@ -57,9 +57,9 @@ def fz_filter(
     ) < first_non_nan_index.broadcast_like(ds_pws["rainfall"])
 
     # initialize arrays
-    sensor_array = np.empty_like(pws_data)
-    ref_array = np.empty_like(pws_data)
-    fz_array = np.empty_like(pws_data)
+    sensor_array = np.zeros_like(pws_data)
+    ref_array = np.zeros_like(pws_data)
+    fz_array = np.zeros_like(pws_data)
 
     # Wet timestep at each station
     sensor_array[np.where(pws_data > 0)] = 1
