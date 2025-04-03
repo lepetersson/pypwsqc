@@ -295,6 +295,13 @@ def so_filter(
     # For each station (ID), get the index of the first non-NaN rainfall value
     first_non_nan_index = ds_pws["rainfall"].notnull().argmax(dim="time")  # noqa: PD004
 
+    ds_pws["so_flag"] = xr.DataArray(
+        np.ones((len(ds_pws.id), len(ds_pws.time))) * -999, dims=("id", "time")
+    )
+    ds_pws["median_corr_nbrs"] = xr.DataArray(
+        np.ones((len(ds_pws.id), len(ds_pws.time))) * -999, dims=("id", "time")
+    )
+
     for i in range(len(ds_pws.id)):
         ds_station = ds_pws.isel(id=i)
         pws_id = ds_station.id.to_numpy()
@@ -338,8 +345,8 @@ def so_filter(
         ds_pws["so_flag"][i, :first_valid_time] = -1
 
         # disregard warm up period
-        ds_pws.so_flag[
-            i, first_valid_time : (first_valid_time + evaluation_period)
-        ] = -1
+        ds_pws.so_flag[i, first_valid_time : (first_valid_time + evaluation_period)] = (
+            -1
+        )
 
     return ds_pws
