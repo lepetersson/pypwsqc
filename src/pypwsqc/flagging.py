@@ -1,4 +1,4 @@
-"""A collection of functions for flagging problematic time steps."""
+"""A collection of functions for flagging problematic time steps in Personal Weather Stations time series."""
 
 from __future__ import annotations
 
@@ -9,12 +9,12 @@ import xarray as xr
 
 
 def fz_filter(
-    ds_pws: npt.NDArray[np.float64],
-    distance_matrix: npt.NDArray[np.float64],
-    nint: npt.NDArray[np.float64],
-    n_stat: npt.NDArray[np.float64],
-    max_distance=npt.NDArray[np.float64],
-) -> npt.NDArray[np.float64]:
+    ds_pws,
+    nint,
+    n_stat,
+    distance_matrix,
+    max_distance,
+    ):
     """Faulty Zeros Filter.
 
     This function applies the FZ filter from the R package PWSQC.
@@ -70,15 +70,6 @@ def fz_filter(
     nbrs_not_nan = ds_pws.nbrs_not_nan
     reference = ds_pws.reference
 
-    # find first rainfall observation in each time series
-    first_non_nan_index = ds_pws["rainfall"].notnull().argmax(dim="time")  # noqa: PD004
-
-    # Create a mask that is True up to the first valid
-    # index for each station, False afterward
-    mask = xr.DataArray(
-        np.arange(ds_pws.sizes["time"]), dims="time"
-    ) < first_non_nan_index.broadcast_like(ds_pws["rainfall"])
-
     # initialize arrays
     sensor_array = np.zeros_like(pws_data)
     ref_array = np.zeros_like(pws_data)
@@ -114,9 +105,6 @@ def fz_filter(
     # add to dataset
     ds_pws["fz_flag"] = fz_flag
 
-    # set fz_flag to -1 up to the first valid rainfall observation
-    ds_pws["fz_flag"] = ds_pws["fz_flag"].where(~mask, -1)
-
     # check if last nint timesteps are NaN in rolling window
     nan_in_last_nint = (
         ds_pws["rainfall"].rolling(time=nint, center=True).construct("window_dim")
@@ -130,14 +118,14 @@ def fz_filter(
 
 
 def hi_filter(
-    ds_pws: npt.NDArray[np.float64],
-    distance_matrix: npt.NDArray[np.float64],
-    hi_thres_a: npt.NDArray[np.float64],
-    hi_thres_b: npt.NDArray[np.float64],
-    nint: npt.NDArray[np.float64],
-    n_stat=npt.NDArray[np.float64],
-    max_distance=npt.NDArray[np.float64],
-) -> npt.NDArray[np.float64]:
+    ds_pws,
+    hi_thres_a,
+    hi_thres_b,
+    nint,
+    n_stat,
+    distance_matrix,
+    max_distance,
+):
     """High Influx filter.
 
     This function applies the HI filter from the R package PWSQC,
@@ -196,15 +184,6 @@ def hi_filter(
         ds_pws["nbrs_not_nan"] = xr.concat(nbrs_not_nan, dim="id")
         ds_pws["reference"] = xr.concat(reference, dim="id")
 
-    # find first rainfall observation in each time series
-    first_non_nan_index = ds_pws["rainfall"].notnull().argmax(dim="time")  # noqa: PD004
-
-    # Create a mask that is True up to the first
-    # valid index for each station, False afterward
-    mask = xr.DataArray(
-        np.arange(ds_pws.sizes["time"]), dims="time"
-    ) < first_non_nan_index.broadcast_like(ds_pws["rainfall"])
-
     condition1 = (ds_pws.reference < hi_thres_a) & (ds_pws.rainfall > hi_thres_b)
     condition2 = (ds_pws.reference >= hi_thres_a) & (
         ds_pws.rainfall > ds_pws.reference * hi_thres_b / hi_thres_a
@@ -216,9 +195,6 @@ def hi_filter(
 
     # add to dataset
     ds_pws["hi_flag"] = hi_flag
-
-    # set hi_flag to -1 up to the first valid rainfall observation
-    ds_pws["hi_flag"] = ds_pws["hi_flag"].where(~mask, -1)
 
     # check if last nint timesteps are NaN in rolling window
     nan_in_last_nint = (
@@ -285,14 +261,14 @@ def so_filter_one_station(da_station, da_neighbors, evaluation_period, mmatch):
 
 
 def so_filter(
-    ds_pws: npt.NDArray[np.float64],
-    distance_matrix: npt.NDArray[np.float64],
-    evaluation_period: npt.NDArray[np.float64],
-    mmatch: npt.NDArray[np.float64],
-    gamma: npt.NDArray[np.float64],
-    n_stat=npt.NDArray[np.float64],
-    max_distance=npt.NDArray[np.float64],
-) -> npt.NDArray[np.float64]:
+    ds_pws,
+    evaluation_period,
+    mmatch,
+    gamma,
+    n_stat,
+    distance_matrix,
+    max_distance,
+):
     """Station Outlier filter.
 
     This function applies the SO filter from the R package PWSQC,
