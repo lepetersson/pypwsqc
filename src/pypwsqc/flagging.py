@@ -14,7 +14,7 @@ def fz_filter(
     n_stat,
     distance_matrix,
     max_distance,
-    ):
+):
     """Faulty Zeros Filter.
 
     This function applies the FZ filter from the R package PWSQC.
@@ -268,9 +268,9 @@ def so_filter(
     n_stat,
     distance_matrix,
     max_distance,
-    bias_corr = False,
-    beta = 0.2,
-    dbc = 1,
+    bias_corr=False,
+    beta=0.2,
+    dbc=1,
 ):
     """Station Outlier filter.
 
@@ -293,8 +293,8 @@ def so_filter(
     neighbouring stations are reporting rainfall to make a reliable
     evaluation or that the previous evaluation_period time steps was dry.
 
-    The function also has the option to calculate a bias correction factor per time step. 
-    
+    The function also has the option to calculate a bias correction factor per time step.
+
     Parameters
     ----------
     ds_pws
@@ -369,28 +369,28 @@ def so_filter(
             (distance_matrix.sel(id=pws_id) < max_distance)
             & (distance_matrix.sel(id=pws_id) > 0)
         ]
-        
+
         # create data set for neighbors
         ds_neighbors = ds_pws.sel(id=neighbor_ids)
-        
+
         # run so-filter T
         ds_so_filter = so_filter_one_station(
             ds_station, ds_neighbors, evaluation_period, mmatch
         )
-        
-        #calculate median correlation with nbrs, per time step
+
+        # calculate median correlation with nbrs, per time step
         median_correlation = ds_so_filter.corr.median(dim="id", skipna=True)
         ds_pws.median_corr_nbrs[i] = median_correlation
-        
+
         so_array = (median_correlation < gamma).astype(int)
-        
+
         # filter can not be applied if less than n_stat neighbors have enough matches
         ds_pws.so_flag[i] = xr.where(ds_so_filter.matches < n_stat, -1, so_array)
-        
+
         # Set so_flag to -1 up to first valid index
         first_valid_time = first_non_nan_index[i].item()
         ds_pws["so_flag"][i, :first_valid_time] = -1
-        
+
         # disregard warm up period
         ds_pws.so_flag[i, first_valid_time : (first_valid_time + evaluation_period)] = (
             -1
@@ -400,22 +400,33 @@ def so_filter(
             ds_pws["BCF_new"] = xr.DataArray(
                 np.ones((len(ds_pws.id), len(ds_pws.time))) * -999, dims=("id", "time")
             )
-            
+
             # initialize with default bias correction factor
             ds_pws["bias_corr_factor"] = xr.DataArray(
                 np.ones((len(ds_pws.id), len(ds_pws.time))) * dbc, dims=("id", "time")
             )
-            
+
             # calculate bias only for time steps that passed the SO filter
-            ds_pws.bias_corr_factor[i] = xr.where(ds_pws.so_flag[i] != 0, np.nan, ds_pws.bias_corr_factor[i])
-            
+            ds_pws.bias_corr_factor[i] = xr.where(
+                ds_pws.so_flag[i] != 0, np.nan, ds_pws.bias_corr_factor[i]
+            )
+
             s_rainfall = ds_station.rainfall.to_series()
             s_reference = ds_station.reference.to_series()
             diff = s_rainfall - s_reference
-            mean_diff = diff.rolling(evaluation_period, min_periods = 1, center = False).mean() # TODO: nanmean
-            mean_ref = s_reference.rolling(evaluation_period, min_periods = 1, center = False).mean() # TODO: nanmean
-            bias = mean_diff/mean_ref
-            BCF_new = 1/(1+bias)
-            ds_pws["BCF_new"][i]= xr.DataArray.from_series(BCF_new)
-            ds_pws.bias_corr_factor[i] = xr.where((np.abs(np.log(ds_pws.BCF_new[i] / BCF_prev)) > np.log(1 + beta)) & (ds_pws.bias_corr_factor[i] == 1),ds_pws.BCF_new[i],ds_pws.bias_corr_factor[i])
-            # TODO: of previous time step
+            mean_diff = diff.rolling(
+                evaluation_period, min_periods=1, center=False
+            ).mean()  # TODO: nanmean
+            mean_ref = s_reference.rolling(
+                evaluation_period, min_periods=1, center=False
+            ).mean()  # TODO: nanmean
+            bias = mean_diff / mean_ref
+            BCF_new = 1 / (1 + bias)
+            ds_pws["BCF_new"][i] = xr.DataArray.from_series(BCF_new)
+            ds_pws.bias_corr_factor[i] = xr.where(
+                (np.abs(np.log(ds_pws.BCF_new[i] / BCF_prev)) > np.log(1 + beta))
+                & (ds_pws.bias_corr_factor[i] == 1),
+                ds_pws.BCF_new[i],
+                ds_pws.bias_corr_factor[i],
+            )
+            # TODO: of previous time step with "forward fill" AND add to index.md
