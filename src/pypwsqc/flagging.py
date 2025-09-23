@@ -370,6 +370,11 @@ def so_filter(
             & (distance_matrix.sel(id=pws_id) > 0)
         ]
 
+        # if there are no neighbors, continue
+        if len(neighbor_ids) == 0:
+            ds_pws_filtered['so_flag'].loc[dict(id=pws_id)] = -1
+            continue 
+            
         # create data set for neighbors
         ds_neighbors = ds_pws.sel(id=neighbor_ids)
 
