@@ -351,6 +351,7 @@ def so_filter(
     # For each station (ID), get the index of the first non-NaN rainfall value
     first_non_nan_index = ds_pws["rainfall"].notnull().argmax(dim="time")  # noqa: PD004
 
+    # intialize 
     ds_pws["so_flag"] = xr.DataArray(
         np.ones((len(ds_pws.id), len(ds_pws.time))) * -999, dims=("id", "time")
     )
@@ -359,13 +360,13 @@ def so_filter(
     )
 
     if bias_corr == True: 
-        ds_pws_filtered["BCF_new"] = xr.DataArray(
-            np.ones((len(ds_pws_filtered.id), len(ds_pws_filtered.time))) * -999, dims=("id", "time")
+        ds_pws["BCF_new"] = xr.DataArray(
+            np.ones((len(ds_pws.id), len(ds_pws.time))) * -999, dims=("id", "time")
         )
     
         # initialize with default bias correction factor
-        ds_pws_filtered["bias_corr_factor"] = xr.DataArray(
-            np.ones((len(ds_pws_filtered.id), len(ds_pws_filtered.time))) * dbc, dims=("id", "time")
+        ds_pws["bias_corr_factor"] = xr.DataArray(
+            np.ones((len(ds_pws.id), len(ds_pws.time))) * dbc, dims=("id", "time")
         )
 
     for i in range(len(ds_pws.id)):
@@ -382,7 +383,7 @@ def so_filter(
 
         # if there are no neighbors, continue
         if len(neighbor_ids) == 0:
-            ds_pws_filtered['so_flag'].loc[dict(id=pws_id)] = -1
+            ds_pws['so_flag'].loc[dict(id=pws_id)] = -1
             continue 
             
         # create data set for neighbors
@@ -400,12 +401,13 @@ def so_filter(
         so_array = (median_correlation < gamma).astype(int)
 
         # filter can not be applied if less than n_stat neighbors have enough matches
-        ds_pws.so_flag[i] = xr.where(ds_so_filter.matches < n_stat, -1, so_array)
+        ds_pws["so_flag"][i] = xr.where(ds_so_filter.matches < n_stat, -1, so_array)
+
+        # find first valid time
+        first_valid_time = first_non_nan_index[i].item()
 
         # disregard warm up period
-        ds_pws.so_flag[i, first_valid_time : (first_valid_time + evaluation_period)] = (
-            -1
-        )
+        ds_pws["so_flag"].isel(id=i).loc[dict(time=ds_pws.time[first_valid_time:first_valid_time + evaluation_period])] = -1
 
         if bias_corr == True:
 
@@ -440,15 +442,15 @@ def so_filter(
                 condition3, ds_pws.BCF_new[i], BCF_shifted
             )
             
-        return ds_pws 
+    return ds_pws  
 
 def bias_correction(
 ds_pws,
 evaluation_period,
 distance_matrix,
 max_distance,
-beta = 0.2,
-dbc = 1,
+beta,
+dbc,
 ):
     """Bias Correction Factor (BCF) Calculation.
     
@@ -537,20 +539,17 @@ dbc = 1,
     
         # if there are no neighbors, continue
         if len(neighbor_ids) == 0:
-            ds_pws_filtered['so_flag'].loc[dict(id=pws_id)] = -1
+            ds_pws['so_flag'].loc[dict(id=pws_id)] = -1
             continue 
             
         # create data set for neighbors
         ds_neighbors = ds_pws.sel(id=neighbor_ids)
             
-        # Set so_flag to -1 up to first valid index
+        # find first valid time
         first_valid_time = first_non_nan_index[i].item()
-        ds_pws.bias_corr_factor[i, :first_valid_time] = -1
-        
+
         # disregard warm up period
-        ds_pws.bias_corr_factor[i, first_valid_time : (first_valid_time + evaluation_period)] = (
-            -1
-        )
+        # ds_pws["so_flag"].isel(id=i).loc[dict(time=ds_pws.time[first_valid_time:first_valid_time + evaluation_period])] = -1
         
         s_rainfall = ds_station.rainfall.to_series()
         s_reference = ds_station.reference.to_series()
