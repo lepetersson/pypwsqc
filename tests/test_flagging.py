@@ -272,6 +272,8 @@ def test_bias_corr():
     evaluation_period = 8064
     pws_id = "ams16"
 
+    dbc = 1
+
     # initialize
     ds_pws["BCF_new"] = xr.DataArray(
         np.ones((len(ds_pws.id), len(ds_pws.time))) * -999, dims=("id", "time")
@@ -295,3 +297,4 @@ def test_bias_corr():
     )
 
     np.testing.assert_almost_equal(expected.to_numpy(), result_flags.to_numpy())
+    #
