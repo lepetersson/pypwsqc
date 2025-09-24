@@ -449,8 +449,8 @@ ds_pws,
 evaluation_period,
 distance_matrix,
 max_distance,
-beta,
-dbc,
+beta = 0.2,
+dbc = 1,
 ):
     """Bias Correction Factor (BCF) Calculation.
     
@@ -483,8 +483,6 @@ dbc,
         matrix with distances between all stations in the data set
     max_distance
         considered range around each station [m]
-    !!bias_corr (optional)
-    !!    boolean to decide if bias correction factor will be calculated. Default False
     beta
         bias correction parameter. Default 0.2
     dbc
