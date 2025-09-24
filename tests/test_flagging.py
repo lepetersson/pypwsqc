@@ -43,7 +43,7 @@ def test_fz_filter():
         1., -1., 1.])
 
     expected = xr.DataArray(np.atleast_2d(expected), coords={'id': ['station_1',], 'time': range(len(expected))})
-        # fmt: on
+    # fmt: on
 
     ds = xr.Dataset(
         {
@@ -256,6 +256,40 @@ def test_so_filter():
         n_stat=5,
         max_distance=10e3,
     )
+    result_flags = result.so_flag.isel(time=slice(evaluation_period, None)).sel(
+        id=pws_id
+    )
+
+    np.testing.assert_almost_equal(expected.to_numpy(), result_flags.to_numpy())
+
+
+def test_bias_corr():
+    # reproduce the flags for Ams16, 2017-08-12 to 2018-10-15
+
+    ds_pws = xr.open_dataset("tests/test_dataset.nc")
+    expected = xr.open_dataarray("tests/expected_array.nc")
+    distance_matrix = plg.spatial.calc_point_to_point_distances(ds_pws, ds_pws)
+    evaluation_period = 8064
+    pws_id = "ams16"
+
+    # initialize
+    ds_pws["BCF_new"] = xr.DataArray(
+        np.ones((len(ds_pws.id), len(ds_pws.time))) * -999, dims=("id", "time")
+    )
+
+    ds_pws["bias_corr_factor"] = xr.DataArray(
+        np.ones((len(ds_pws.id), len(ds_pws.time))) * dbc, dims=("id", "time")
+    )
+
+    result = pypwsqc.flagging.bias_correction(
+        ds_pws,
+        evaluation_period,
+        distance_matrix,
+        max_distance=10e3,
+        beta=0.2,
+        dbc=1,
+    )
+
     result_flags = result.so_flag.isel(time=slice(evaluation_period, None)).sel(
         id=pws_id
     )
