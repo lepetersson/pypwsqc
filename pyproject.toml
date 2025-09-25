@@ -152,6 +152,7 @@ ignore = [
   "ISC001",   # Conflicts with formatter
   "T201",     # print statement should be allowed
   "PD003",    # false positive when using xarray
+  "PD004",
 ]
 
 # Disabled because this would also be forced in notebooks where

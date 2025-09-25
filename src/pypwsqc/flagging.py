@@ -1,4 +1,5 @@
-"""A collection of functions for flagging problematic time steps in Personal Weather Stations time series."""
+"""A collection of functions for flagging problematic time steps in
+Personal Weather Stations time series."""
 
 from __future__ import annotations
 
@@ -292,7 +293,8 @@ def so_filter(
     neighbouring stations are reporting rainfall to make a reliable
     evaluation or that the previous evaluation_period time steps was dry.
 
-    The function also has the option to calculate a bias correction factor per time step.
+    The function also has the option to calculate a bias correction factor
+    per time step.
 
     Parameters
     ----------
