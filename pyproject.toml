@@ -62,6 +62,7 @@ docs = [
   "sphinx_copybutton",
   "nbsphinx",
   "ipython",
+  "ipykernel",
 ]
 
 [tool.poetry-dynamic-versioning]
