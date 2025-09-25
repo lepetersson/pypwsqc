@@ -501,14 +501,14 @@ def _calc_bias_corr_factor(
 
         # if there are no neighbors, continue
         if len(neighbor_ids) == 0:
-            ds_pws["so_flag"].loc[{id: pws_id}] = -1
+            ds_pws["bias_corr_factor"].loc[{id: pws_id}] = -1
             continue
 
         # find first valid time
         first_valid_time = first_non_nan_index[i].item()
 
         # disregard warm up period
-        ds_pws["so_flag"].isel(id=i).loc[
+        ds_pws["bias_corr_factor"].isel(id=i).loc[
             {
                 "time": ds_pws.time[
                     first_valid_time : first_valid_time + evaluation_period
