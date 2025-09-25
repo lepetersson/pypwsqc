@@ -553,7 +553,7 @@ def bias_correction(
 
         # if there are no neighbors, continue
         if len(neighbor_ids) == 0:
-            ds_pws["so_flag"].loc[{id=pws_id}] = -1
+            ds_pws["so_flag"].loc[{id: pws_id}] = -1
             continue
 
         # find first valid time
