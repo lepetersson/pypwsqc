@@ -384,7 +384,7 @@ def so_filter(
 
         # if there are no neighbors, continue
         if len(neighbor_ids) == 0:
-            ds_pws["so_flag"].loc[dict(id=pws_id)] = -1
+            ds_pws["so_flag"].loc[{"id": pws_id}] = -1
             continue
 
         # create data set for neighbors
@@ -409,11 +409,11 @@ def so_filter(
 
         # disregard warm up period
         ds_pws["so_flag"].isel(id=i).loc[
-            dict(
-                time=ds_pws.time[
+            {
+                "time": ds_pws.time[
                     first_valid_time : first_valid_time + evaluation_period
                 ]
-            )
+            }
         ] = -1
 
         if bias_corr == True:  # noqa: E712
@@ -553,7 +553,7 @@ def bias_correction(
 
         # if there are no neighbors, continue
         if len(neighbor_ids) == 0:
-            ds_pws["so_flag"].loc[dict(id=pws_id)] = -1
+            ds_pws["so_flag"].loc[{id=pws_id}] = -1
             continue
 
         # find first valid time
@@ -561,11 +561,11 @@ def bias_correction(
 
         # disregard warm up period
         ds_pws["so_flag"].isel(id=i).loc[
-            dict(
-                time=ds_pws.time[
+            {
+                "time": ds_pws.time[
                     first_valid_time : first_valid_time + evaluation_period
                 ]
-            )
+            }
         ] = -1
 
         s_rainfall = ds_station.rainfall.to_series()
