@@ -1,5 +1,4 @@
-"""A collection of functions for flagging problematic time steps in
-Personal Weather Stations time series."""
+"""Functions for flagging problematic time steps in PWS time series."""
 
 from __future__ import annotations
 
@@ -317,7 +316,6 @@ def so_filter(
     )
 
     for i in range(len(ds_pws.id)):
-        BCF_prev = dbc
         ds_station = ds_pws.isel(id=i)
         pws_id = ds_station.id.to_numpy()
 
@@ -374,7 +372,7 @@ def so_filter(
                 dbc,
             )
 
-    return ds_pws
+    return ds_bias_corr
 
 
 def bias_correction(
@@ -433,7 +431,7 @@ def bias_correction(
         )
 
     # run bias correction
-    ds_bias_corr = _calc_bias_corr_factor(
+    return _calc_bias_corr_factor(
         ds_pws,
         evaluation_period,
         distance_matrix,
@@ -441,8 +439,6 @@ def bias_correction(
         beta,
         dbc,
     )
-
-    return ds_bias_corr
 
 
 def _calc_bias_corr_factor(
@@ -475,6 +471,8 @@ def _calc_bias_corr_factor(
     xarray.Dataset
         Time series with bias correction factors.
     """
+    BCF_prev = dbc
+
     # For each station (ID), get the index of the first non-NaN rainfall value
     first_non_nan_index = ds_pws["rainfall"].notnull().argmax(dim="time")  # noqa: PD004
 
