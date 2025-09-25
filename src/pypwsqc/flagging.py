@@ -562,3 +562,5 @@ def _calc_reference_and_nbrs_not_nan(ds_pws, distance_matrix, max_distance):
 
     ds_pws["nbrs_not_nan"] = xr.concat(nbrs_not_nan, dim="id")
     ds_pws["reference"] = xr.concat(reference, dim="id")
+
+    return ds_pws.reference, ds_pws.nbrs_not_nan
