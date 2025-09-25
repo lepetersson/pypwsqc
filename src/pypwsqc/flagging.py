@@ -47,24 +47,10 @@ def fz_filter(
     """
     # calculate support variables
     if "reference" not in ds_pws:
-        nbrs_not_nan = []
-        reference = []
-        for pws_id in ds_pws.id.data:
-            neighbor_ids = distance_matrix.id.data[
-                (distance_matrix.sel(id=pws_id) < max_distance)
-                & (distance_matrix.sel(id=pws_id) > 0)
-            ]
 
-            N = (
-                ds_pws.rainfall.sel(id=neighbor_ids).notnull().sum(dim="id")
-            )  # noqa: PD004
-            nbrs_not_nan.append(N)
-
-            median = ds_pws.sel(id=neighbor_ids).rainfall.median(dim="id")
-            reference.append(median)
-
-        ds_pws["nbrs_not_nan"] = xr.concat(nbrs_not_nan, dim="id")
-        ds_pws["reference"] = xr.concat(reference, dim="id")
+        ds_pws["reference"], ds_pws["nbrs_not_nan"] = _calc_reference_and_nbrs_not_nan(
+            ds_pws, distance_matrix, max_distance
+        )
 
     pws_data = ds_pws.rainfall
     nbrs_not_nan = ds_pws.nbrs_not_nan
@@ -165,24 +151,9 @@ def hi_filter(
     """
     # calculate support variables
     if "reference" not in ds_pws:
-        nbrs_not_nan = []
-        reference = []
-        for pws_id in ds_pws.id.data:
-            neighbor_ids = distance_matrix.id.data[
-                (distance_matrix.sel(id=pws_id) < max_distance)
-                & (distance_matrix.sel(id=pws_id) > 0)
-            ]
-
-            N = (
-                ds_pws.rainfall.sel(id=neighbor_ids).notnull().sum(dim="id")
-            )  # noqa: PD004
-            nbrs_not_nan.append(N)
-
-            median = ds_pws.sel(id=neighbor_ids).rainfall.median(dim="id")
-            reference.append(median)
-
-        ds_pws["nbrs_not_nan"] = xr.concat(nbrs_not_nan, dim="id")
-        ds_pws["reference"] = xr.concat(reference, dim="id")
+        ds_pws["reference"], ds_pws["nbrs_not_nan"] = _calc_reference_and_nbrs_not_nan(
+            ds_pws, distance_matrix, max_distance
+        )
 
     condition1 = (ds_pws.reference < hi_thres_a) & (ds_pws.rainfall > hi_thres_b)
     condition2 = (ds_pws.reference >= hi_thres_a) & (
@@ -208,7 +179,7 @@ def hi_filter(
     return ds_pws
 
 
-def so_filter_one_station(ds_station, ds_neighbors, evaluation_period, mmatch):
+def _so_filter_one_station(ds_station, ds_neighbors, evaluation_period, mmatch):
     """Support function to Station Outlier filter.
 
     Parameters
@@ -330,24 +301,9 @@ def so_filter(
     """
     # calculate support variables
     if "reference" not in ds_pws:
-        nbrs_not_nan = []
-        reference = []
-        for pws_id in ds_pws.id.data:
-            neighbor_ids = distance_matrix.id.data[
-                (distance_matrix.sel(id=pws_id) < max_distance)
-                & (distance_matrix.sel(id=pws_id) > 0)
-            ]
-
-            N = (
-                ds_pws.rainfall.sel(id=neighbor_ids).notnull().sum(dim="id")
-            )  # noqa: PD004
-            nbrs_not_nan.append(N)
-
-            median = ds_pws.sel(id=neighbor_ids).rainfall.median(dim="id")
-            reference.append(median)
-
-        ds_pws["nbrs_not_nan"] = xr.concat(nbrs_not_nan, dim="id")
-        ds_pws["reference"] = xr.concat(reference, dim="id")
+        ds_pws["reference"], ds_pws["nbrs_not_nan"] = _calc_reference_and_nbrs_not_nan(
+            ds_pws, distance_matrix, max_distance
+        )
 
     # For each station (ID), get the index of the first non-NaN rainfall value
     first_non_nan_index = ds_pws["rainfall"].notnull().argmax(dim="time")  # noqa: PD004
@@ -359,16 +315,6 @@ def so_filter(
     ds_pws["median_corr_nbrs"] = xr.DataArray(
         np.ones((len(ds_pws.id), len(ds_pws.time))) * -999, dims=("id", "time")
     )
-
-    if bias_corr == True:  # noqa: E712
-        ds_pws["BCF_new"] = xr.DataArray(
-            np.ones((len(ds_pws.id), len(ds_pws.time))) * -999, dims=("id", "time")
-        )
-
-        # initialize with default bias correction factor
-        ds_pws["bias_corr_factor"] = xr.DataArray(
-            np.ones((len(ds_pws.id), len(ds_pws.time))) * dbc, dims=("id", "time")
-        )
 
     for i in range(len(ds_pws.id)):
         BCF_prev = dbc
@@ -391,7 +337,7 @@ def so_filter(
         ds_neighbors = ds_pws.sel(id=neighbor_ids)
 
         # run so-filter
-        ds_so_filter = so_filter_one_station(
+        ds_so_filter = _so_filter_one_station(
             ds_station, ds_neighbors, evaluation_period, mmatch
         )
 
@@ -418,39 +364,14 @@ def so_filter(
 
         if bias_corr == True:  # noqa: E712
 
-            eps = 1e-6  # small number to prevent divide-by-zero
-
-            # calculate bias only for time steps that passed the SO filter
-            ds_pws.bias_corr_factor[i] = xr.where(
-                ds_pws.so_flag[i] != 0, np.nan, ds_pws.bias_corr_factor[i]
-            )
-
-            s_rainfall = ds_station.rainfall.to_series()
-            s_reference = ds_station.reference.to_series()
-            diff = s_rainfall - s_reference
-            mean_diff = diff.rolling(
-                evaluation_period, min_periods=1, center=False
-            ).mean()  # TODO: nanmean
-            mean_ref = s_reference.rolling(
-                evaluation_period, min_periods=1, center=False
-            ).mean()  # TODO: nanmean
-            bias = mean_diff / mean_ref.replace(0, np.nan)
-
-            BCF_new = 1 / (1 + bias)
-            ds_pws["BCF_new"][i] = xr.DataArray.from_series(BCF_new)
-
-            BCF_shifted = ds_pws["BCF_new"][i].shift(time=-1)
-
-            # avoid log(<=0): replace invalid ratios with eps
-            ratio = ds_pws.BCF_new[i] / BCF_prev
-            safe_ratio = xr.where(ratio <= 0, eps, ratio)
-
-            condition3 = (np.abs(np.log(safe_ratio)) > np.log(1 + beta)) & (
-                ds_pws.bias_corr_factor[i] == 1
-            )
-
-            ds_pws.bias_corr_factor[i] = xr.where(
-                condition3, ds_pws.BCF_new[i], BCF_shifted
+            # run bias correction
+            ds_bias_corr = _calc_bias_corr_factor(
+                ds_pws,
+                evaluation_period,
+                distance_matrix,
+                max_distance,
+                beta,
+                dbc,
             )
 
     return ds_pws
@@ -503,29 +424,57 @@ def bias_correction(
     Returns
     -------
     xarray.Dataset
-        Time series of flags.
+        Time series with bias correction factors.
     """
     # calculate support variables
     if "reference" not in ds_pws:
-        nbrs_not_nan = []
-        reference = []
-        for pws_id in ds_pws.id.data:
-            neighbor_ids = distance_matrix.id.data[
-                (distance_matrix.sel(id=pws_id) < max_distance)
-                & (distance_matrix.sel(id=pws_id) > 0)
-            ]
+        ds_pws["reference"], ds_pws["nbrs_not_nan"] = _calc_reference_and_nbrs_not_nan(
+            ds_pws, distance_matrix, max_distance
+        )
 
-            N = (
-                ds_pws.rainfall.sel(id=neighbor_ids).notnull().sum(dim="id")
-            )  # noqa: PD004
-            nbrs_not_nan.append(N)
+    # run bias correction
+    ds_bias_corr = _calc_bias_corr_factor(
+        ds_pws,
+        evaluation_period,
+        distance_matrix,
+        max_distance,
+        beta,
+        dbc,
+    )
 
-            median = ds_pws.sel(id=neighbor_ids).rainfall.median(dim="id")
-            reference.append(median)
+    return ds_bias_corr
 
-        ds_pws["nbrs_not_nan"] = xr.concat(nbrs_not_nan, dim="id")
-        ds_pws["reference"] = xr.concat(reference, dim="id")
 
+def _calc_bias_corr_factor(
+    ds_pws,
+    evaluation_period,
+    distance_matrix,
+    max_distance,
+    beta,
+    dbc,
+):
+    """Support function to Bias Correction filter filter.
+
+    Parameters
+    ----------
+    da_pws
+        xarray data set
+    evaluation_period
+        rainfall time series of neighboring stations.
+    distance_matrix
+        matrix with distances between all stations in the
+        data set.
+    max_distance
+        considered range around each station [m]
+    beta
+        bias correction parameter. Default 0.2
+    dbc
+        Start value of bias correction factor. Default 1
+    Returns
+    -------
+    xarray.Dataset
+        Time series with bias correction factors.
+    """
     # For each station (ID), get the index of the first non-NaN rainfall value
     first_non_nan_index = ds_pws["rainfall"].notnull().argmax(dim="time")  # noqa: PD004
 
@@ -536,7 +485,6 @@ def bias_correction(
     ds_pws["BCF_new"] = xr.DataArray(
         np.ones((len(ds_pws.id), len(ds_pws.time))) * -999, dims=("id", "time")
     )
-
     eps = 1e-6  # small number to prevent divide-by-zero
 
     for i in range(len(ds_pws.id)):
@@ -595,3 +543,22 @@ def bias_correction(
         )
 
     return ds_pws
+
+
+def _calc_reference_and_nbrs_not_nan(ds_pws, distance_matrix, max_distance):
+    nbrs_not_nan = []
+    reference = []
+    for pws_id in ds_pws.id.data:
+        neighbor_ids = distance_matrix.id.data[
+            (distance_matrix.sel(id=pws_id) < max_distance)
+            & (distance_matrix.sel(id=pws_id) > 0)
+        ]
+
+        N = ds_pws.rainfall.sel(id=neighbor_ids).notnull().sum(dim="id")  # noqa: PD004
+        nbrs_not_nan.append(N)
+
+        median = ds_pws.sel(id=neighbor_ids).rainfall.median(dim="id")
+        reference.append(median)
+
+    ds_pws["nbrs_not_nan"] = xr.concat(nbrs_not_nan, dim="id")
+    ds_pws["reference"] = xr.concat(reference, dim="id")
