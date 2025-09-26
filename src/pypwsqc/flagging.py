@@ -359,9 +359,9 @@ def so_filter(
             }
         ] = -1
 
-        if bias_corr == True:  # noqa: E712
+        if bias_corr:
             # run bias correction
-            ds_bias_corr = _calc_bias_corr_factor(
+            ds_pws = _calc_bias_corr_factor(
                 ds_pws,
                 evaluation_period,
                 distance_matrix,
@@ -370,7 +370,7 @@ def so_filter(
                 dbc,
             )
 
-    return ds_bias_corr
+    return ds_pws
 
 
 def bias_correction(
