@@ -251,7 +251,7 @@ def test_so_filter():
     # reproduce the flags for Ams16, 2017-08-12 to 2018-10-15
 
     ds_pws = xr.open_dataset("tests/test_dataset.nc")
-    expected_dataset = xr.open_dataarray("tests/expected_array.nc")
+    expected_dataset = xr.open_dataset("tests/expected_array.nc")
     expected = expected_dataset.so_flag
     distance_matrix = plg.spatial.calc_point_to_point_distances(ds_pws, ds_pws)
     evaluation_period = 8064
@@ -284,7 +284,7 @@ def test_bias_corr():
     # reproduce the flags for Ams16, 2017-08-12 to 2018-10-15
 
     ds_pws = xr.open_dataset("tests/test_dataset.nc")
-    expected_dataset = xr.open_dataarray("tests/expected_array.nc")
+    expected_dataset = xr.open_dataset("tests/expected_array.nc")
     expected = expected_dataset.bias_corr_factor
     distance_matrix = plg.spatial.calc_point_to_point_distances(ds_pws, ds_pws)
     evaluation_period = 8064
