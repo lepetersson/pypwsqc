@@ -310,9 +310,9 @@ def test_bias_corr():
         dbc=1,
     )
 
-    result_flags = result.so_flag.isel(time=slice(evaluation_period, None)).sel(
-        id=pws_id
-    )
+    result_flags = result.bias_corr_factor.isel(
+        time=slice(evaluation_period, None)
+    ).sel(id=pws_id)
 
     np.testing.assert_almost_equal(expected.to_numpy(), result_flags.to_numpy())
     #
