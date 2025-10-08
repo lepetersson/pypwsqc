@@ -12,7 +12,7 @@ def fz_filter(
     nint,
     n_stat,
     distance_matrix,
-    max_distance,
+    max_distance=10e3,
 ):
     """Faulty Zeros Filter.
 
@@ -108,7 +108,7 @@ def hi_filter(
     nint,
     n_stat,
     distance_matrix,
-    max_distance,
+    max_distance=10e3,
 ):
     """High Influx filter.
 
@@ -236,7 +236,7 @@ def so_filter(
     gamma,
     n_stat,
     distance_matrix,
-    max_distance,
+    max_distance=10e3,
     bias_corr=False,
     beta=0.2,
     dbc=1,
@@ -377,7 +377,7 @@ def bias_correction(
     ds_pws,
     evaluation_period,
     distance_matrix,
-    max_distance,
+    max_distance=10e3,
     beta=0.2,
     dbc=1,
 ):
@@ -525,7 +525,9 @@ def _calc_bias_corr_factor(
         BCF_new = 1 / (1 + bias)  # pylint: disable=invalid-name
         ds_pws["BCF_new"][i] = xr.DataArray.from_series(BCF_new)
 
-        BCF_shifted = ds_pws["BCF_new"][i].shift(time=-1)  # pylint: disable=invalid-name
+        BCF_shifted = ds_pws["BCF_new"][i].shift(
+            time=-1
+        )  # pylint: disable=invalid-name
 
         # avoid log(<=0): replace invalid ratios with eps
         ratio = ds_pws.BCF_new[i] / BCF_prev
@@ -551,7 +553,9 @@ def _calc_reference_and_nbrs_not_nan(ds_pws, distance_matrix, max_distance):
             & (distance_matrix.sel(id=pws_id) > 0)
         ]
 
-        N = ds_pws.rainfall.sel(id=neighbor_ids).notnull().sum(dim="id")  # pylint: disable=invalid-name
+        N = (
+            ds_pws.rainfall.sel(id=neighbor_ids).notnull().sum(dim="id")
+        )  # pylint: disable=invalid-name
         nbrs_not_nan.append(N)
 
         median = ds_pws.sel(id=neighbor_ids).rainfall.median(dim="id")

@@ -10,6 +10,9 @@ import pypwsqc
 def test_fz_filter():
     # fmt: off
 
+    ds_pws = xr.open_dataset("tests/test_dataset.nc")
+    distance_matrix = plg.spatial.calc_point_to_point_distances(ds_pws, ds_pws)
+
     #Test 1. Station reports no rain, neighbours are reporting rain
     pws_data = np.array(
     [0.   , 0.   , 0.   , 0.   , 0.   , 0.   , 0.   , 0.   , 0.   ,
@@ -58,6 +61,8 @@ def test_fz_filter():
         ds,
         nint=3,
         n_stat=5,
+        distance_matrix=distance_matrix,
+        max_distance=10e3,
     )
 
     np.testing.assert_almost_equal(expected[0], result.fz_flag.data[0])
@@ -120,14 +125,19 @@ def test_fz_filter():
         ds,
         nint=7,
         n_stat=5,
+        distance_matrix=distance_matrix,
+        max_distance=10e3,
     )
 
     np.testing.assert_almost_equal(expected[0], result.fz_flag.data[0])
 
 
 def test_hi_filter():
-    # for max_distance = 10e3
     # fmt: off
+
+    ds_pws = xr.open_dataset("tests/test_dataset.nc")
+    distance_matrix = plg.spatial.calc_point_to_point_distances(ds_pws, ds_pws)
+
     pws_data = np.array([[0.       , 0.       , 0.101    , 0.       , 0.101    , 0.       ,
        0.       , 0.       , 0.       , 0.       , 0.       , 1.3130001,
        3.7370002, 0.404    , 0.       , 0.       , 0.       , 0.       ,
@@ -167,6 +177,8 @@ def test_hi_filter():
         hi_thres_b=10,
         nint=8064,
         n_stat=5,
+        distance_matrix=distance_matrix,
+        max_distance=10e3,
     )
 
     np.testing.assert_almost_equal(expected, result.hi_flag.data)
@@ -197,6 +209,8 @@ def test_hi_filter():
         hi_thres_b=3,
         nint=8064,
         n_stat=5,
+        distance_matrix=distance_matrix,
+        max_distance=10e3,
     )
 
     np.testing.assert_almost_equal(expected, result.hi_flag.data)
@@ -226,6 +240,8 @@ def test_hi_filter():
         hi_thres_b=10,
         nint=8064,
         n_stat=5,
+        distance_matrix=distance_matrix,
+        max_distance=10e3,
     )
 
     np.testing.assert_almost_equal(expected, result.hi_flag.data)
@@ -235,7 +251,8 @@ def test_so_filter():
     # reproduce the flags for Ams16, 2017-08-12 to 2018-10-15
 
     ds_pws = xr.open_dataset("tests/test_dataset.nc")
-    expected = xr.open_dataarray("tests/expected_array.nc")
+    expected_dataset = xr.open_dataarray("tests/expected_array.nc")
+    expected = expected_dataset.so_flag
     distance_matrix = plg.spatial.calc_point_to_point_distances(ds_pws, ds_pws)
     evaluation_period = 8064
     pws_id = "ams16"
@@ -267,7 +284,8 @@ def test_bias_corr():
     # reproduce the flags for Ams16, 2017-08-12 to 2018-10-15
 
     ds_pws = xr.open_dataset("tests/test_dataset.nc")
-    expected = xr.open_dataarray("tests/expected_array.nc")
+    expected_dataset = xr.open_dataarray("tests/expected_array.nc")
+    expected = expected_dataset.bias_corr_factor
     distance_matrix = plg.spatial.calc_point_to_point_distances(ds_pws, ds_pws)
     evaluation_period = 8064
     pws_id = "ams16"
