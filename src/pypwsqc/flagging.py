@@ -470,7 +470,7 @@ def _calc_bias_corr_factor(
     xarray.Dataset
         Time series with bias correction factors.
     """
-    BCF_prev = dbc  # pylint: disable=invalid-name
+    bcf_prev = dbc
 
     # For each station (ID), get the index of the first non-NaN rainfall value
     first_non_nan_index = ds_pws["rainfall"].notnull().argmax(dim="time")
@@ -479,13 +479,13 @@ def _calc_bias_corr_factor(
     ds_pws["bias_corr_factor"] = xr.DataArray(
         np.ones((len(ds_pws.id), len(ds_pws.time))) * dbc, dims=("id", "time")
     )
-    ds_pws["BCF_new"] = xr.DataArray(
+    ds_pws["bcf_new"] = xr.DataArray(
         np.ones((len(ds_pws.id), len(ds_pws.time))) * -999, dims=("id", "time")
     )
     eps = 1e-6  # small number to prevent divide-by-zero
 
     for i in range(len(ds_pws.id)):
-        BCF_prev = dbc  # pylint: disable=invalid-name
+        bcf_prev = dbc
         ds_station = ds_pws.isel(id=i)
         pws_id = ds_station.id.to_numpy()
 
@@ -522,15 +522,13 @@ def _calc_bias_corr_factor(
         ).mean()
         bias = mean_diff / mean_ref.replace(0, np.nan)
 
-        BCF_new = 1 / (1 + bias)  # pylint: disable=invalid-name
-        ds_pws["BCF_new"][i] = xr.DataArray.from_series(BCF_new)
+        bcf_new = 1 / (1 + bias)
+        ds_pws["bcf_new"][i] = xr.DataArray.from_series(bcf_new)
 
-        BCF_shifted = ds_pws["BCF_new"][i].shift(
-            time=-1
-        )  # pylint: disable=invalid-name
+        bcf_shifted = ds_pws["bcf_new"][i].shift(time=-1)
 
         # avoid log(<=0): replace invalid ratios with eps
-        ratio = ds_pws.BCF_new[i] / BCF_prev
+        ratio = ds_pws.bcf_new[i] / bcf_prev
         safe_ratio = xr.where(ratio <= 0, eps, ratio)
 
         condition3 = (np.abs(np.log(safe_ratio)) > np.log(1 + beta)) & (
@@ -538,7 +536,7 @@ def _calc_bias_corr_factor(
         )
 
         ds_pws.bias_corr_factor[i] = xr.where(
-            condition3, ds_pws.BCF_new[i], BCF_shifted
+            condition3, ds_pws.bcf_new[i], bcf_shifted
         )
 
     return ds_pws
@@ -553,10 +551,8 @@ def _calc_reference_and_nbrs_not_nan(ds_pws, distance_matrix, max_distance):
             & (distance_matrix.sel(id=pws_id) > 0)
         ]
 
-        N = (
-            ds_pws.rainfall.sel(id=neighbor_ids).notnull().sum(dim="id")
-        )  # pylint: disable=invalid-name
-        nbrs_not_nan.append(N)
+        nr_nbrs_not_nan = ds_pws.rainfall.sel(id=neighbor_ids).notnull().sum(dim="id")
+        nbrs_not_nan.append(nr_nbrs_not_nan)
 
         median = ds_pws.sel(id=neighbor_ids).rainfall.median(dim="id")
         reference.append(median)
