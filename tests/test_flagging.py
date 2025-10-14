@@ -135,7 +135,7 @@ def test_fz_filter():
     # reproduce the flags for Ams11, 2017-07-15 to 2017-07-30
 
     ds_pws = xr.open_dataset("tests/test_dataset.nc")
-    ds_pws = ds_pws.sel(time=slice("2017-07-01", "2017-07-30"))
+    ds_pws = ds_pws.sel(time=slice("2017-07-15", "2017-07-30"))
     expected_dataset = xr.open_dataset("tests/expected_array_fz_hi.nc")
     expected = expected_dataset.fz_flag
     distance_matrix = plg.spatial.calc_point_to_point_distances(ds_pws, ds_pws)
@@ -272,7 +272,7 @@ def test_hi_filter():
     # reproduce the flags for Ams11, 2017-07-15 to 2017-07-30
 
     ds_pws = xr.open_dataset("tests/test_dataset.nc")
-    ds_pws = ds_pws.sel(time=slice("2017-07-01", "2017-07-30"))
+    ds_pws = ds_pws.sel(time=slice("2017-07-15", "2017-07-30"))
     expected_dataset = xr.open_dataset("tests/expected_array_fz_hi.nc")
     expected = expected_dataset.hi_flag
     distance_matrix = plg.spatial.calc_point_to_point_distances(ds_pws, ds_pws)
@@ -294,7 +294,7 @@ def test_hi_filter():
 
 
 def test_so_filter():
-    # reproduce the flags for Ams16, 2017-08-12 to 2018-10-15
+    # reproduce the flags for Ams16, 2017-08-12 to 2017-10-15
 
     ds_pws = xr.open_dataset("tests/test_dataset.nc")
     expected_dataset = xr.open_dataset("tests/expected_array_so_bias.nc")
@@ -377,7 +377,7 @@ def test_so_filter():
 
 
 def test_bias_corr():
-    # reproduce the flags for Ams16, 2017-08-12 to 2018-10-15
+    # reproduce the flags for Ams16, 2017-08-12 to 2017-10-15
 
     ds_pws = xr.open_dataset("tests/test_dataset.nc")
     expected_dataset = xr.open_dataset("tests/expected_array_so_bias.nc")
