@@ -543,18 +543,35 @@ def _calc_bias_corr_factor(
 
 
 def _calc_reference_and_nbrs_not_nan(ds_pws, distance_matrix, max_distance):
+
     nbrs_not_nan = []
     reference = []
+
+    time_len = ds_pws.sizes["time"]  # length of the time dimension
+
     for pws_id in ds_pws.id.data:
         neighbor_ids = distance_matrix.id.data[
             (distance_matrix.sel(id=pws_id) < max_distance)
             & (distance_matrix.sel(id=pws_id) > 0)
         ]
 
-        nr_nbrs_not_nan = ds_pws.rainfall.sel(id=neighbor_ids).notnull().sum(dim="id")
-        nbrs_not_nan.append(nr_nbrs_not_nan)
+        if len(neighbor_ids) == 0:
+            # No neighbors → fill with np.nan
+            nr_nbrs_not_nan = xr.DataArray(
+                np.zeros(time_len, dtype=int),
+                dims=["time"],
+                coords={"time": ds_pws.time},
+            )
+            median = xr.DataArray(
+                np.full(time_len, np.nan), dims=["time"], coords={"time": ds_pws.time}
+            )
+        else:
+            nr_nbrs_not_nan = (
+                ds_pws.rainfall.sel(id=neighbor_ids).notnull().sum(dim="id")
+            )
+            median = ds_pws.sel(id=neighbor_ids).rainfall.median(dim="id")
 
-        median = ds_pws.sel(id=neighbor_ids).rainfall.median(dim="id")
+        nbrs_not_nan.append(nr_nbrs_not_nan)
         reference.append(median)
 
     ds_pws["nbrs_not_nan"] = xr.concat(nbrs_not_nan, dim="id")
