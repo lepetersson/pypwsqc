@@ -498,7 +498,7 @@ def _calc_bias_corr_factor(
 
         # if there are no neighbors, continue
         if len(neighbor_ids) == 0:
-            ds_pws["bias_corr_factor"].loc[{id: pws_id}] = -1
+            ds_pws["bias_corr_factor"].loc[{"id": pws_id}] = -1
             continue
 
         # find first valid time
