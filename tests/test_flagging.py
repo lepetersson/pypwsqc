@@ -385,6 +385,7 @@ def test_bias_corr():
     distance_matrix = plg.spatial.calc_point_to_point_distances(ds_pws, ds_pws)
     evaluation_period = 8064
     pws_id = "ams16"
+    dbc = 1
 
     # initialize
     ds_pws["BCF_new"] = xr.DataArray(
