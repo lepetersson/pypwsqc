@@ -543,7 +543,6 @@ def _calc_bias_corr_factor(
 
 
 def _calc_reference_and_nbrs_not_nan(ds_pws, distance_matrix, max_distance):
-
     nbrs_not_nan = []
     reference = []
 
