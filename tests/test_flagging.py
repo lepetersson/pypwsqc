@@ -400,7 +400,7 @@ def test_bias_corr():
         ds_pws,
         evaluation_period,
         distance_matrix,
-        max_distance=5,
+        max_distance=10e3,
         beta=0.2,
         dbc=1,
     )
